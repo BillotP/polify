@@ -217,19 +217,19 @@ class MusicBucketsService {
 
   /// fetchUrl get a presigned url (valid for 1week) for a song bucket key
   /// and save it to local db
-  Future<String> fetchUrl(Song song) async {
+  Future<Song> fetchUrl(Song song) async {
     try {
       var songUrl = await s3storage.presignedGetObject(
         song.bucketName,
         song.bucketKey,
       );
-      await (localDb.update(localDb.songs)
+      var updated = await (localDb.update(localDb.songs)
             ..where((tbl) => tbl.bucketKey.equals(song.bucketKey)))
-          .write(SongsCompanion(streamUrl: d.Value(songUrl)));
-      return songUrl;
+          .writeReturning(SongsCompanion(streamUrl: d.Value(songUrl)));
+      return updated.first;
     } on Exception catch (e) {
       Get.snackbar("Something bad happened", e.toString());
-      return "";
+      rethrow;
     }
   }
 

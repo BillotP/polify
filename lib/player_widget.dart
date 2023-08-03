@@ -84,25 +84,42 @@ class _PlayerWidgetState extends State<PlayerWidget> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              key: const Key('play_button'),
-              onPressed: _isPlaying ? null : _play,
+              key: const Key('prev_button'),
+              // onPressed: _isPlaying || _isPaused ? _stop : null,
+              onPressed: () => widget.player.skipToPrevious(),
               iconSize: 48.0,
-              icon: const Icon(Icons.play_arrow),
+              icon: const Icon(Icons.skip_previous),
               color: color,
             ),
-            IconButton(
-              key: const Key('pause_button'),
-              onPressed: _isPlaying ? _pause : null,
-              iconSize: 48.0,
-              icon: const Icon(Icons.pause),
-              color: color,
-            ),
+            _isPaused
+                ? IconButton(
+                    key: const Key('play_button'),
+                    onPressed: _play,
+                    iconSize: 48.0,
+                    icon: const Icon(Icons.play_arrow),
+                    color: color,
+                  )
+                : IconButton(
+                    key: const Key('pause_button'),
+                    onPressed: _pause,
+                    iconSize: 48.0,
+                    icon: const Icon(Icons.pause),
+                    color: color,
+                  ),
             IconButton(
               key: const Key('stop_button'),
               // onPressed: _isPlaying || _isPaused ? _stop : null,
               onPressed: _stop,
               iconSize: 48.0,
               icon: const Icon(Icons.stop),
+              color: color,
+            ),
+            IconButton(
+              key: const Key('next_button'),
+              // onPressed: _isPlaying || _isPaused ? _stop : null,
+              onPressed: () => widget.player.nextSong(),
+              iconSize: 48.0,
+              icon: const Icon(Icons.skip_next_sharp),
               color: color,
             ),
           ],

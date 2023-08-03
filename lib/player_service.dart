@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:drift/drift.dart';
 import 'package:get/get.dart';
@@ -5,9 +6,20 @@ import 'package:polify/bucket_service.dart';
 import 'package:polify/database.dart';
 
 class SongToplay {
-  final String? localPath;
-  final String? streamingUrl;
-  SongToplay(this.localPath, this.streamingUrl);
+  late int songId;
+  String? localPath;
+  String? streamingUrl;
+  String? title;
+  String? albumName;
+  String? artistName;
+  SongToplay(Song song, {Artist? artist, Album? album}) {
+    songId = song.id;
+    title = song.title;
+    localPath = song.localPath;
+    streamingUrl = song.streamUrl;
+    albumName = album?.name;
+    artistName = artist?.name;
+  }
   Source get source {
     if (localPath != null) {
       return DeviceFileSource(localPath!);
@@ -16,56 +28,91 @@ class SongToplay {
     }
     throw Exception("missing source");
   }
+
+  MediaItem get mediaItem {
+    String songitemId = "";
+    if (localPath != null) {
+      songitemId = localPath!;
+    } else if (streamingUrl != null) {
+      songitemId = streamingUrl!;
+    }
+    return songitemId.isNotEmpty
+        ? MediaItem(
+            id: streamingUrl!,
+            album: albumName,
+            playable: true,
+            title: title ?? "Unknow title",
+            artist: artistName)
+        : throw Exception("missing source");
+  }
 }
 
-class PlayerService {
-  LocalDB localDb = Get.find();
-  MusicBucketsService srv = Get.find();
-  AudioPlayer player = Get.find();
-  List<SongToplay> currentPlaylist = [];
+class PlayerService extends BaseAudioHandler with QueueHandler, SeekHandler {
   int playIndex = 0;
-  Future playAlbum(Album album) async {
+  LocalDB localDb = Get.find();
+  AudioPlayer player = Get.find();
+  MusicBucketsService srv = Get.find();
+  List<SongToplay> currentPlaylist = [];
+  @override
+  Future<void> play() async {
+    await player.play(currentPlaylist.elementAt(playIndex).source);
+    mediaItem.add(currentPlaylist.elementAt(playIndex).mediaItem);
+    playbackState.value =
+        PlaybackState(playing: true, queueIndex: playIndex, controls: [
+      MediaControl.skipToPrevious,
+      MediaControl.play,
+      MediaControl.pause,
+      MediaControl.stop,
+      MediaControl.skipToNext,
+    ]);
+  }
+
+  @override
+  Future<void> pause() async {
+    await player.pause();
+    playbackState.add(
+        playbackState.value.copyWith(playing: false, queueIndex: playIndex));
+  }
+
+  Future playAlbum(Album album, {bool replaceCurrent = true}) async {
     var songs = await (localDb.songs.select()
           ..where((tbl) => tbl.albumId.equals(album.id)))
         .get();
-    print("${songs.length} from album ${album.name} to play");
-    await playSongs(songs);
+    await playSongs(songs, replaceCurrent: replaceCurrent, album: album);
   }
 
-  Future playArtist(Artist artist) async {
+  Future playArtist(Artist artist, {bool replaceCurrent = true}) async {
     var albumIds = await (localDb.albumArtists.select()
           ..where((tbl) => tbl.artistId.equals(artist.id)))
         .get();
     var songs = await (localDb.songs.select()
           ..where((tbl) => tbl.albumId.isIn(albumIds.map((e) => e.albumId))))
         .get();
-    print("${songs.length} from artist ${artist.name} to play");
-    await playSongs(songs);
+    await playSongs(songs, replaceCurrent: replaceCurrent, artist: artist);
   }
 
-  Future playSongs(List<Song> songs) async {
-    playIndex = 0;
-    currentPlaylist.clear();
+  Future playSongs(List<Song> songs,
+      {bool replaceCurrent = true, Artist? artist, Album? album}) async {
+    if (currentPlaylist.isEmpty) replaceCurrent = true;
+    if (replaceCurrent && currentPlaylist.isNotEmpty) currentPlaylist.clear();
     for (var song in songs) {
-      if (song.streamUrl != null) {
-        currentPlaylist.add(SongToplay(null, song.streamUrl!));
-      } else if (song.localPath != null) {
-        currentPlaylist.add(SongToplay(song.localPath!, null));
-      } else {
-        var songUrl = await srv.fetchUrl(song);
-        currentPlaylist.add(SongToplay(null, songUrl));
+      if (song.streamUrl == null && song.localPath == null) {
+        song = await srv.fetchUrl(song);
       }
+      currentPlaylist.add(SongToplay(song, artist: artist, album: album));
     }
-    // await player.setSource(currentPlaylist.first.source);
-    if (player.state == PlayerState.playing ||
-        player.state == PlayerState.paused) {
-      await player.stop();
-    }
-    if (currentPlaylist.isNotEmpty) {
-      await player.play(currentPlaylist.elementAt(playIndex).source);
+    if (currentPlaylist.isEmpty) {
+      Get.snackbar("Player", "No songs in playlist");
       return;
     }
-    Get.snackbar("Player", "No songs in playlist");
+    if (replaceCurrent) {
+      playIndex = 0;
+      await player.stop();
+      queue.value = currentPlaylist.map((e) => e.mediaItem).toList();
+      await play();
+    } else {
+      queue.add(currentPlaylist.map((e) => e.mediaItem).toList());
+    }
   }
 
   Future nextSong() async {
@@ -75,8 +122,7 @@ class PlayerService {
           player.state == PlayerState.paused) {
         await player.stop();
       }
-      // await player.setSource(currentPlaylist.elementAt(playIndex).source);
-      await player.play(currentPlaylist.elementAt(playIndex).source);
+      await play();
     }
   }
 
@@ -87,40 +133,19 @@ class PlayerService {
           player.state == PlayerState.paused) {
         await player.stop();
       }
-      // await player.setSource(currentPlaylist.elementAt(playIndex).source);
-      await player.play(currentPlaylist.elementAt(playIndex).source);
+      await play();
     }
   }
-}
 
-// Future _readObject(String bucket, String key) async {
-//   try {
-//     String songUrl;
-//     setState(() {
-//       _loading = true;
-//     });
-//     if (player.state == PlayerState.playing) player.stop();
-//     var existing = await (db.select(db.songs)
-//           ..where((tbl) => tbl.bucketKey.equals(key)))
-//         .getSingle();
-//     if (existing.streamUrl != null) {
-//       songUrl = existing.streamUrl!;
-//     } else {
-//       songUrl = await s3Storage.presignedGetObject(
-//         bucket,
-//         key,
-//       );
-//       await (db.update(db.songs)..where((tbl) => tbl.bucketKey.equals(key)))
-//           .write(SongsCompanion(streamUrl: d.Value(songUrl)));
-//     }
-//     await player.play(UrlSource(songUrl));
-//     setState(() {
-//       _loading = false;
-//     });
-//   } on Exception catch (e) {
-//     Get.snackbar("Something bad happened", e.toString());
-//     setState(() {
-//       _loading = false;
-//     });
-//   }
-// }
+  @override
+  Future<void> skipToNext() => nextSong();
+
+  @override
+  Future<void> skipToPrevious() => previousSong();
+
+  @override
+  Future<void> stop() async {
+    await player.stop();
+    playbackState.value = PlaybackState();
+  }
+}

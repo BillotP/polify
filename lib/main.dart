@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:drift/drift.dart' as d;
 import 'package:flutter/material.dart';
@@ -12,7 +13,7 @@ import 'package:get/get.dart';
 import 'database.dart';
 import 'env.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Get.put(LocalDB());
   Get.put(S3Storage(
@@ -23,6 +24,15 @@ void main() {
   Get.put(AudioPlayer());
   Get.put(MusicBucketsService());
   Get.put(PlayerService());
+  await AudioService.init<PlayerService>(
+    builder: () => Get.find(),
+    config: AudioServiceConfig(
+        androidShowNotificationBadge: true,
+        androidNotificationChannelId: 'com.example.polify.channel.audio',
+        androidNotificationChannelName: 'Audio playback',
+        androidNotificationOngoing: true,
+        notificationColor: Colors.amber[900]),
+  );
   runApp(const MyApp());
 }
 
@@ -223,7 +233,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                     },
                                 icon: const Icon(Icons.play_circle_fill)),
                             IconButton(
-                                onPressed: () => (),
+                                onPressed: () async => {
+                                      await player.playArtist(
+                                          snapshot.data![index],
+                                          replaceCurrent: false),
+                                      setState(() {})
+                                    },
                                 icon: const Icon(Icons.playlist_add))
                           ],
                         ),
@@ -264,13 +279,20 @@ class _MyHomePageState extends State<MyHomePage> {
                           children: [
                             IconButton(
                                 onPressed: () async => {
-                                      await player
-                                          .playAlbum(snapshot.data![index]),
+                                      await player.playAlbum(
+                                        snapshot.data![index],
+                                        replaceCurrent: true,
+                                      ),
                                       setState(() {})
                                     },
                                 icon: const Icon(Icons.play_circle_fill)),
                             IconButton(
-                                onPressed: () => (),
+                                onPressed: () async => {
+                                      await player.playAlbum(
+                                          snapshot.data![index],
+                                          replaceCurrent: false),
+                                      setState(() {})
+                                    },
                                 icon: const Icon(Icons.playlist_add))
                           ],
                         ),
