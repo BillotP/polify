@@ -13,6 +13,7 @@ import 'package:s3_storage/s3_storage.dart';
 import 'package:path/path.dart' as p;
 
 class MusicBucketsService {
+  // TODO(MusicBucketsService/musicPrefix) do not hardcode
   String musicPrefix = "Music";
   S3Storage s3storage = Get.find();
   LocalDB localDb = Get.find();
@@ -62,7 +63,6 @@ class MusicBucketsService {
   }
 
   Future saveSongs(String targetBucket) async {
-    // TODO(saveSongs) : clean / refacto the below mess (serialize parsing as json and batch upsert and the end)
     try {
       Stream<ListObjectsResult> objs;
       var [unknowAlbumId, unknowArtistId] = await seedDefault();
@@ -71,11 +71,8 @@ class MusicBucketsService {
           prefix: "$musicPrefix/", recursive: true);
 
       await objs.forEach((element) async {
-        print(
-            "Bucket $targetBucket : Loading ${element.objects.length} objects, Last : ${element.objects.last.key}");
         for (var obj in element.objects) {
           await saveObject(obj, targetBucket, unknowAlbumId, unknowArtistId);
-          // print("Found title $objectmetas");
         }
         if (element.objects.length < 1000) {
           objs = s3storage.listObjectsV2(targetBucket,
@@ -99,6 +96,8 @@ class MusicBucketsService {
 
   Future<void> saveObject(Object obj, String targetBucket, int unknowAlbumId,
       int unknowArtistId) async {
+    // TODO(saveObject) : clean / refacto the below mess (serialize parsing as json and batch upsert and the end)
+    if (obj.eTag == null) return; // It should be a folder
     Map<String, dynamic> objectmetas = {
       "name": null,
       "key": obj.key,
@@ -246,7 +245,6 @@ class MusicBucketsService {
     final parser = ID3TagReader.path(fPath);
     final tag = parser.readTagSync();
     if (tag.tagFound) {
-      // tag.pictures.first.imageData
       Get.snackbar('Infos',
           'Artist : ${tag.artist}\nAlbum :${tag.album}\nTitle :${tag.title}\nComment :${tag.comment}',
           snackPosition: SnackPosition.BOTTOM,
