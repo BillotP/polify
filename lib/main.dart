@@ -1,17 +1,17 @@
+import 'package:get/get.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:drift/drift.dart' as d;
 import 'package:flutter/material.dart';
-import 'package:polify/screens/artist.dart';
-import 'package:polify/services/bucket_service.dart';
-import 'package:polify/components/album_tile.dart';
-import 'package:polify/services/player_service.dart';
-import 'package:polify/components/player_widget.dart';
 import 'package:s3_storage/s3_storage.dart';
-import 'package:get/get.dart';
 
-import 'services/database.dart';
 import 'env.dart';
+import 'services/database.dart';
+import 'services/bucket_service.dart';
+import 'services/player_service.dart';
+import 'components/artist_tile.dart';
+import 'components/album_tile.dart';
+import 'components/player_widget.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -97,33 +97,25 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void onAlbumPlayNow(Album album) async => {
+  void onAlbumPlay(Album album, bool now) async => {
         await player.playAlbum(
           album,
-          replaceCurrent: true,
+          replaceCurrent: now,
         ),
         setState(() {})
       };
 
-  void onAlbumPlayAfter(Album album) async => {
-        await player.playAlbum(
-          album,
-          replaceCurrent: false,
+  void onArtistPlay(Artist artist, bool now) async => {
+        await player.playArtist(
+          artist,
+          replaceCurrent: now,
         ),
         setState(() {})
       };
-
-  @override
-  void dispose() {
-    super.dispose();
-    // player.dispose();
-    // player.player.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     var appBar = AppBar(
-      // backgroundColor: Theme.of(context).colorScheme.background,
       backgroundColor: Colors.black,
       actions: [
         FloatingActionButton(
@@ -251,40 +243,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       scrollDirection: Axis.horizontal,
                       itemBuilder: (context, index) => SizedBox(
                         width: MediaQuery.of(context).size.width,
-                        child: ListTile(
-                          shape: RoundedRectangleBorder(
-                              side: const BorderSide(
-                                  width: 2, color: Colors.white),
-                              borderRadius: BorderRadius.circular(10)),
-                          leading: snapshot.data![index].imageUrl != null
-                              ? Image.network(snapshot.data![index].imageUrl!)
-                              : const Icon(Icons.person_3_outlined),
-                          title: Text(snapshot.data![index].name),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                  onPressed: () async => {
-                                        await player
-                                            .playArtist(snapshot.data![index]),
-                                        setState(
-                                          () {},
-                                        )
-                                      },
-                                  icon: const Icon(Icons.play_circle_fill)),
-                              IconButton(
-                                  onPressed: () async => {
-                                        await player.playArtist(
-                                            snapshot.data![index],
-                                            replaceCurrent: false),
-                                        setState(() {})
-                                      },
-                                  icon: const Icon(Icons.playlist_add))
-                            ],
-                          ),
-                          onTap: () => Get.to(
-                              ArtistWidget(artist: snapshot.data![index])),
-                        ),
+                        child: artistListTile(
+                            snapshot.data![index], (artist, now) {}),
                       ),
                     ),
                   );
@@ -320,8 +280,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       itemBuilder: (context, index) {
                         // return albumListTile(snapshot.data![index],
                         //     onAlbumPlayAfter, onAlbumPlayNow);
-                        return albumCardTile(snapshot.data![index],
-                            onAlbumPlayAfter, onAlbumPlayNow);
+                        return albumCardTile(
+                            snapshot.data![index], onAlbumPlay);
                       },
                     );
                   } else {

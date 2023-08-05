@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'package:polify/screens/album.dart';
 import 'package:polify/services/database.dart';
 
-Widget albumListTile(Album album, void Function(Album album) onPlayLater,
-        void Function(Album album) onPlayNow) =>
+Widget albumListTile(
+        Album album, void Function(Album album, bool now) onAlbumPlay) =>
     ListTile(
       shape: RoundedRectangleBorder(
           side: const BorderSide(width: 2, color: Colors.white),
@@ -17,18 +17,18 @@ Widget albumListTile(Album album, void Function(Album album) onPlayLater,
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-              onPressed: () => onPlayNow(album),
+              onPressed: () => onAlbumPlay(album, true),
               icon: const Icon(Icons.play_circle_fill)),
           IconButton(
-              onPressed: () => onPlayLater(album),
+              onPressed: () => onAlbumPlay(album, false),
               icon: const Icon(Icons.playlist_add))
         ],
       ),
       onTap: () => Get.to(AlbumWidget(album: album)),
     );
 
-Widget albumCardTile(Album album, void Function(Album album) onPlayLater,
-        void Function(Album album) onPlayNow) =>
+Widget albumCardTile(
+        Album album, void Function(Album album, bool now) onAlbumPlay) =>
     Card(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -48,10 +48,10 @@ Widget albumCardTile(Album album, void Function(Album album) onPlayLater,
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                  onPressed: () => onPlayNow(album),
+                  onPressed: () => onAlbumPlay(album, true),
                   icon: const Icon(Icons.play_circle_fill)),
               IconButton(
-                  onPressed: () => onPlayLater(album),
+                  onPressed: () => onAlbumPlay(album, false),
                   icon: const Icon(Icons.playlist_add))
             ],
           ),
