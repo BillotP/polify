@@ -2,15 +2,15 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:drift/drift.dart' as d;
 import 'package:flutter/material.dart';
-import 'package:polify/artist.dart';
-import 'package:polify/bucket_service.dart';
+import 'package:polify/screens/artist.dart';
+import 'package:polify/services/bucket_service.dart';
 import 'package:polify/components/album_tile.dart';
-import 'package:polify/player_service.dart';
-import 'package:polify/player_widget.dart';
+import 'package:polify/services/player_service.dart';
+import 'package:polify/components/player_widget.dart';
 import 'package:s3_storage/s3_storage.dart';
 import 'package:get/get.dart';
 
-import 'database.dart';
+import 'services/database.dart';
 import 'env.dart';
 
 Future<void> main() async {

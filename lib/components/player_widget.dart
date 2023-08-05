@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:polify/player_service.dart';
+import 'package:polify/services/player_service.dart';
 
 class PlayerWidget extends StatefulWidget {
   final PlayerService player = Get.find();
@@ -28,7 +28,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   StreamSubscription? _playerCompleteSubscription;
   StreamSubscription? _playerStateChangeSubscription;
 
-  bool get _isPlaying => _playerState == PlayerState.playing;
+  // bool get _isPlaying => _playerState == PlayerState.playing;
 
   bool get _isPaused => _playerState == PlayerState.paused;
 

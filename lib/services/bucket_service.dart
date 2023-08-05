@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:id3tag/id3tag.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:polify/database.dart';
+import 'package:polify/services/database.dart';
 import 'package:s3_storage/io.dart';
 import 'package:s3_storage/models.dart';
 import 'package:s3_storage/s3_storage.dart';

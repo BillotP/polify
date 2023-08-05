@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:polify/album.dart';
-import 'package:polify/database.dart';
+import 'package:polify/screens/album.dart';
+import 'package:polify/services/database.dart';
 
 Widget albumListTile(Album album, void Function(Album album) onPlayLater,
         void Function(Album album) onPlayNow) =>

@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart' as d;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:polify/database.dart';
+import 'package:polify/services/database.dart';
 
-import 'bucket_service.dart';
+import '../services/bucket_service.dart';
 
 class AlbumWidget extends StatefulWidget {
   final Album album;

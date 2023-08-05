@@ -2,8 +2,8 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:drift/drift.dart';
 import 'package:get/get.dart';
-import 'package:polify/bucket_service.dart';
-import 'package:polify/database.dart';
+import 'package:polify/services/bucket_service.dart';
+import 'package:polify/services/database.dart';
 
 class SongToplay {
   late int songId;
