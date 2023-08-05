@@ -2,9 +2,9 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:drift/drift.dart' as d;
 import 'package:flutter/material.dart';
-import 'package:polify/album.dart';
 import 'package:polify/artist.dart';
 import 'package:polify/bucket_service.dart';
+import 'package:polify/components/album_tile.dart';
 import 'package:polify/player_service.dart';
 import 'package:polify/player_widget.dart';
 import 'package:s3_storage/s3_storage.dart';
@@ -26,12 +26,13 @@ Future<void> main() async {
   Get.put(PlayerService());
   await AudioService.init<PlayerService>(
     builder: () => Get.find(),
-    config: AudioServiceConfig(
+    config: const AudioServiceConfig(
         androidShowNotificationBadge: true,
         androidNotificationChannelId: 'com.example.polify.channel.audio',
         androidNotificationChannelName: 'Audio playback',
         androidNotificationOngoing: true,
-        notificationColor: Colors.amber[900]),
+        androidStopForegroundOnPause: true,
+        notificationColor: Colors.black),
   );
   runApp(const MyApp());
 }
@@ -95,6 +96,22 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     });
   }
+
+  void onAlbumPlayNow(Album album) async => {
+        await player.playAlbum(
+          album,
+          replaceCurrent: true,
+        ),
+        setState(() {})
+      };
+
+  void onAlbumPlayAfter(Album album) async => {
+        await player.playAlbum(
+          album,
+          replaceCurrent: false,
+        ),
+        setState(() {})
+      };
 
   @override
   void dispose() {
@@ -160,36 +177,48 @@ class _MyHomePageState extends State<MyHomePage> {
                   return SizedBox(
                     height: (MediaQuery.of(context).size.height -
                             appBar.preferredSize.height) /
-                        6,
+                        10,
+                    // width: 200,
                     child: ListView.builder(
+                      padding: const EdgeInsets.all(8),
                       itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) => ListTile(
-                        leading: const Icon(Icons.storage_rounded),
-                        trailing: _bucketCrawling[snapshot.data![index].name] !=
-                                    null &&
-                                _bucketCrawling[snapshot.data![index].name]!
-                            ? Transform.scale(
-                                scale: 0.5,
-                                child: const CircularProgressIndicator(),
-                              )
-                            : null,
-                        onTap: () async => _bucketCrawling[
-                                        snapshot.data![index].name] !=
-                                    null &&
-                                !_bucketCrawling[snapshot.data![index].name]!
-                            ? {
-                                setState(() {
-                                  _bucketCrawling[snapshot.data![index].name] =
-                                      true;
-                                }),
-                                await srv.saveSongs(snapshot.data![index].name),
-                                setState(() {
-                                  _bucketCrawling[snapshot.data![index].name] =
-                                      false;
-                                }),
-                              }
-                            : print("supposedly loading ..."),
-                        title: Text(snapshot.data![index].name),
+                      scrollDirection: Axis.horizontal,
+                      itemBuilder: (context, index) => SizedBox(
+                        width: MediaQuery.of(context).size.width - 80,
+                        child: ListTile(
+                          shape: RoundedRectangleBorder(
+                              side: const BorderSide(
+                                  width: 2, color: Colors.white),
+                              borderRadius: BorderRadius.circular(10)),
+                          leading: const Icon(Icons.storage_rounded),
+                          trailing: _bucketCrawling[
+                                          snapshot.data![index].name] !=
+                                      null &&
+                                  _bucketCrawling[snapshot.data![index].name]!
+                              ? Transform.scale(
+                                  scale: 0.5,
+                                  child: const CircularProgressIndicator(),
+                                )
+                              : null,
+                          onTap: () async => _bucketCrawling[
+                                          snapshot.data![index].name] !=
+                                      null &&
+                                  !_bucketCrawling[snapshot.data![index].name]!
+                              ? {
+                                  setState(() {
+                                    _bucketCrawling[
+                                        snapshot.data![index].name] = true;
+                                  }),
+                                  await srv
+                                      .saveSongs(snapshot.data![index].name),
+                                  setState(() {
+                                    _bucketCrawling[
+                                        snapshot.data![index].name] = false;
+                                  }),
+                                }
+                              : null,
+                          title: Text(snapshot.data![index].name),
+                        ),
                       ),
                     ),
                   );
@@ -204,6 +233,7 @@ class _MyHomePageState extends State<MyHomePage> {
           const Text("Artists"),
           StreamBuilder(
             stream: artists,
+            key: const Key("artists_stream"),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const CircularProgressIndicator();
@@ -212,38 +242,49 @@ class _MyHomePageState extends State<MyHomePage> {
                 if (snapshot.hasError) {
                   return Text('Error ${snapshot.data.toString()}');
                 } else if (snapshot.hasData) {
-                  return Expanded(
+                  return SizedBox(
+                    height: 60,
+                    key: const Key("artists"),
                     child: ListView.builder(
+                      shrinkWrap: true,
                       itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) => ListTile(
-                        leading: snapshot.data![index].imageUrl != null
-                            ? Image.network(snapshot.data![index].imageUrl!)
-                            : const Icon(Icons.person_3_outlined),
-                        title: Text(snapshot.data![index].name),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                                onPressed: () async => {
-                                      await player
-                                          .playArtist(snapshot.data![index]),
-                                      setState(
-                                        () {},
-                                      )
-                                    },
-                                icon: const Icon(Icons.play_circle_fill)),
-                            IconButton(
-                                onPressed: () async => {
-                                      await player.playArtist(
-                                          snapshot.data![index],
-                                          replaceCurrent: false),
-                                      setState(() {})
-                                    },
-                                icon: const Icon(Icons.playlist_add))
-                          ],
+                      scrollDirection: Axis.horizontal,
+                      itemBuilder: (context, index) => SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: ListTile(
+                          shape: RoundedRectangleBorder(
+                              side: const BorderSide(
+                                  width: 2, color: Colors.white),
+                              borderRadius: BorderRadius.circular(10)),
+                          leading: snapshot.data![index].imageUrl != null
+                              ? Image.network(snapshot.data![index].imageUrl!)
+                              : const Icon(Icons.person_3_outlined),
+                          title: Text(snapshot.data![index].name),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                  onPressed: () async => {
+                                        await player
+                                            .playArtist(snapshot.data![index]),
+                                        setState(
+                                          () {},
+                                        )
+                                      },
+                                  icon: const Icon(Icons.play_circle_fill)),
+                              IconButton(
+                                  onPressed: () async => {
+                                        await player.playArtist(
+                                            snapshot.data![index],
+                                            replaceCurrent: false),
+                                        setState(() {})
+                                      },
+                                  icon: const Icon(Icons.playlist_add))
+                            ],
+                          ),
+                          onTap: () => Get.to(
+                              ArtistWidget(artist: snapshot.data![index])),
                         ),
-                        onTap: () =>
-                            Get.to(ArtistWidget(artist: snapshot.data![index])),
                       ),
                     ),
                   );
@@ -256,58 +297,41 @@ class _MyHomePageState extends State<MyHomePage> {
             },
           ),
           const Text("Albums"),
-          StreamBuilder(
-            stream: albums,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              } else if (snapshot.connectionState == ConnectionState.active ||
-                  snapshot.connectionState == ConnectionState.done) {
-                if (snapshot.hasError) {
-                  return Text('Error ${snapshot.data.toString()}');
-                } else if (snapshot.hasData) {
-                  return Expanded(
-                    child: ListView.builder(
+          Expanded(
+            child: StreamBuilder(
+              stream: albums,
+              key: const Key("albums_stream"),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.connectionState == ConnectionState.active ||
+                    snapshot.connectionState == ConnectionState.done) {
+                  if (snapshot.hasError) {
+                    return Text('Error ${snapshot.data.toString()}');
+                  } else if (snapshot.hasData) {
+                    return GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2),
+                      clipBehavior: Clip.antiAlias,
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
                       itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) => ListTile(
-                        leading: snapshot.data![index].imageUrl != null
-                            ? Image.network(snapshot.data![index].imageUrl!)
-                            : const Icon(Icons.album_sharp),
-                        title: Text(snapshot.data![index].name),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                                onPressed: () async => {
-                                      await player.playAlbum(
-                                        snapshot.data![index],
-                                        replaceCurrent: true,
-                                      ),
-                                      setState(() {})
-                                    },
-                                icon: const Icon(Icons.play_circle_fill)),
-                            IconButton(
-                                onPressed: () async => {
-                                      await player.playAlbum(
-                                          snapshot.data![index],
-                                          replaceCurrent: false),
-                                      setState(() {})
-                                    },
-                                icon: const Icon(Icons.playlist_add))
-                          ],
-                        ),
-                        onTap: () =>
-                            Get.to(AlbumWidget(album: snapshot.data![index])),
-                      ),
-                    ),
-                  );
+                      itemBuilder: (context, index) {
+                        // return albumListTile(snapshot.data![index],
+                        //     onAlbumPlayAfter, onAlbumPlayNow);
+                        return albumCardTile(snapshot.data![index],
+                            onAlbumPlayAfter, onAlbumPlayNow);
+                      },
+                    );
+                  } else {
+                    return const Text('Empty data');
+                  }
                 } else {
-                  return const Text('Empty data');
+                  return const Center(child: Text('Select a bucket above'));
                 }
-              } else {
-                return const Center(child: Text('Select a bucket above'));
-              }
-            },
+              },
+            ),
           ),
           player.player.source == null ? Container() : PlayerWidget()
         ],
