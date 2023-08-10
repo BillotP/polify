@@ -3,6 +3,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:drift/drift.dart' as d;
 import 'package:flutter/material.dart';
+import 'package:polify/components/bucket_tile.dart';
 import 'package:s3_storage/s3_storage.dart';
 
 import 'env.dart';
@@ -28,7 +29,7 @@ Future<void> main() async {
     builder: () => Get.find(),
     config: const AudioServiceConfig(
         androidShowNotificationBadge: true,
-        androidNotificationChannelId: 'com.example.polify.channel.audio',
+        androidNotificationChannelId: 'lol.polify.polify.channel.audio',
         androidNotificationChannelName: 'Audio playback',
         androidNotificationOngoing: true,
         androidStopForegroundOnPause: true,
@@ -113,6 +114,32 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {})
       };
 
+  void onRefreshBucketList() async => {
+        _loading
+            ? ()
+            : setState(() {
+                _loading = true;
+              }),
+        await _init(),
+        setState(() {
+          _loading = false;
+        })
+      };
+
+  void onRefreshBucketContent(MusicBucket bucket) async =>
+      _bucketCrawling[bucket.name] != null &&
+              _bucketCrawling[bucket.name]! == false
+          ? {
+              setState(() {
+                _bucketCrawling[bucket.name] = true;
+              }),
+              await srv.saveSongs(bucket.name),
+              setState(() {
+                _bucketCrawling[bucket.name] = false;
+              }),
+            }
+          : null;
+
   @override
   Widget build(BuildContext context) {
     var appBar = AppBar(
@@ -121,17 +148,7 @@ class _MyHomePageState extends State<MyHomePage> {
         FloatingActionButton(
           mini: true,
           heroTag: "refreshBucket",
-          onPressed: () async => {
-            _loading
-                ? ()
-                : setState(() {
-                    _loading = true;
-                  }),
-            await srv.loadBuckets(),
-            setState(() {
-              _loading = false;
-            })
-          },
+          onPressed: () => onRefreshBucketList(),
           tooltip: 'Refresh',
           child: _loading
               ? const CircularProgressIndicator()
@@ -170,47 +187,18 @@ class _MyHomePageState extends State<MyHomePage> {
                     height: (MediaQuery.of(context).size.height -
                             appBar.preferredSize.height) /
                         10,
-                    // width: 200,
                     child: ListView.builder(
                       padding: const EdgeInsets.all(8),
                       itemCount: snapshot.data!.length,
                       scrollDirection: Axis.horizontal,
                       itemBuilder: (context, index) => SizedBox(
                         width: MediaQuery.of(context).size.width - 80,
-                        child: ListTile(
-                          shape: RoundedRectangleBorder(
-                              side: const BorderSide(
-                                  width: 2, color: Colors.white),
-                              borderRadius: BorderRadius.circular(10)),
-                          leading: const Icon(Icons.storage_rounded),
-                          trailing: _bucketCrawling[
-                                          snapshot.data![index].name] !=
-                                      null &&
-                                  _bucketCrawling[snapshot.data![index].name]!
-                              ? Transform.scale(
-                                  scale: 0.5,
-                                  child: const CircularProgressIndicator(),
-                                )
-                              : null,
-                          onTap: () async => _bucketCrawling[
-                                          snapshot.data![index].name] !=
-                                      null &&
-                                  !_bucketCrawling[snapshot.data![index].name]!
-                              ? {
-                                  setState(() {
-                                    _bucketCrawling[
-                                        snapshot.data![index].name] = true;
-                                  }),
-                                  await srv
-                                      .saveSongs(snapshot.data![index].name),
-                                  setState(() {
-                                    _bucketCrawling[
-                                        snapshot.data![index].name] = false;
-                                  }),
-                                }
-                              : null,
-                          title: Text(snapshot.data![index].name),
-                        ),
+                        child: bucketListTile(
+                            snapshot.data![index],
+                            _bucketCrawling[snapshot.data![index].name] !=
+                                    null &&
+                                _bucketCrawling[snapshot.data![index].name]!,
+                            onRefreshBucketContent),
                       ),
                     ),
                   );
@@ -243,8 +231,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       scrollDirection: Axis.horizontal,
                       itemBuilder: (context, index) => SizedBox(
                         width: MediaQuery.of(context).size.width,
-                        child: artistListTile(
-                            snapshot.data![index], (artist, now) {}),
+                        child:
+                            artistListTile(snapshot.data![index], onArtistPlay),
                       ),
                     ),
                   );
