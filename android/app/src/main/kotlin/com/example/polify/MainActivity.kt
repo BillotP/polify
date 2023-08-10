@@ -1,4 +1,4 @@
-package com.example.polify
+package lol.polify.polify
 
 import io.flutter.embedding.android.FlutterActivity
 
