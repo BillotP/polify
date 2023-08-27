@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart' as d;
@@ -6,11 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:id3tag/id3tag.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:polify/env.dart';
 import 'package:polify/services/database.dart';
+import 'package:polify/services/wiki_service.dart';
 import 'package:s3_storage/io.dart';
 import 'package:s3_storage/models.dart';
 import 'package:s3_storage/s3_storage.dart';
 import 'package:path/path.dart' as p;
+import 'package:http/http.dart' as http;
 
 class MusicBucketsService {
   // TODO(MusicBucketsService/musicPrefix) do not hardcode
@@ -30,7 +34,9 @@ class MusicBucketsService {
       }
       await localDb.musicBuckets.insertAll(
           buckets.map((e) => MusicBucketsCompanion.insert(
-              name: e.name, musicFolderPrefix: d.Value(musicPrefix))),
+              endpoint: Env.s3Endpoint,
+              name: e.name,
+              musicFolderPrefix: d.Value(musicPrefix))),
           onConflict: d.DoNothing(target: [localDb.musicBuckets.name]));
     } on Exception catch (e) {
       Get.snackbar("Something bad happened", e.toString());
@@ -232,25 +238,155 @@ class MusicBucketsService {
     }
   }
 
-  Future readId3Tag(Song song) async {
-    // TODO (readId3Tag): Check if file is offline first else download and update db
-    final appFolder = await getExternalStorageDirectory();
-    final fPath = p.join(appFolder!.path, song.bucketKey.split('/').last);
-    if (!File(fPath).existsSync()) {
-      // print("Downloading ...");
-      await s3storage.fGetObject(song.bucketName, song.bucketKey, fPath);
-      // print("Downloaded $fPath");
+  Future<List<Song>> downloadSongs(List<Song> songs) async {
+    try {
+      for (var song in songs) {
+        if (song.localPath != null && File(song.localPath!).existsSync()) {
+          continue;
+        }
+        Directory? appFolder;
+        if (Platform.isAndroid) {
+          appFolder = await getExternalStorageDirectory();
+        } else {
+          appFolder = await getDownloadsDirectory();
+        }
+
+        final fPath =
+            p.join(appFolder!.path, "polify", song.bucketKey.split('/').last);
+        print("Exist $fPath ");
+        if (!File(fPath).existsSync()) {
+          print("Downloading ...");
+          await s3storage.fGetObject(song.bucketName, song.bucketKey, fPath);
+          print("Downloaded $fPath");
+        }
+        var updated = await (localDb.update(localDb.songs)
+              ..where((tbl) => tbl.bucketKey.equals(song.bucketKey)))
+            .writeReturning(SongsCompanion(localPath: d.Value(fPath)));
+        songs[songs.indexWhere((element) => element.id == updated.first.id)] =
+            updated.first;
+      }
+      return songs;
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  Future uploadSong(String fpath, String bucketPath, String bucket) async {
+    if (!File(fpath).existsSync()) return;
+    try {
+      var ff = File(fpath);
+      Stream<Uint8List> lines = ff.openRead() as Stream<Uint8List>;
+      var res = await s3storage.putObject(bucket, bucketPath, lines);
+      print(res);
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  Future<ID3Tag?> readId3Tag(Song song, {clearAfter = false}) async {
+    if (song.localPath == null ||
+        (song.localPath != null && !File(song.localPath!).existsSync())) {
+      [song] = await downloadSongs([song]);
       sleep(const Duration(seconds: 2));
     }
-    final parser = ID3TagReader.path(fPath);
+    print(song.localPath);
+    final fpath = song.localPath!;
+    final parser = ID3TagReader.path(fpath);
     final tag = parser.readTagSync();
     if (tag.tagFound) {
-      Get.snackbar('Infos',
-          'Artist : ${tag.artist}\nAlbum :${tag.album}\nTitle :${tag.title}\nComment :${tag.comment}',
-          snackPosition: SnackPosition.BOTTOM,
-          icon: tag.pictures.isNotEmpty
-              ? Image.memory(tag.pictures.first.imageData as Uint8List)
-              : const Icon(Icons.library_music_outlined));
+      // Get.snackbar('Infos',
+      //     'Artist : ${tag.artist}\nAlbum :${tag.album}\nTitle :${tag.title}\nComment :${tag.comment}',
+      //     snackPosition: SnackPosition.BOTTOM,
+      //     icon: tag.pictures.isNotEmpty
+      //         ? Image.memory(tag.pictures.first.imageData as Uint8List)
+      //         : const Icon(Icons.library_music_outlined));
+      return tag;
+    }
+    if (clearAfter) File(fpath).deleteSync();
+    return null;
+  }
+
+  Future loadJackets() async {
+    var elem = 0;
+    final albums = await (localDb.albums.all()).get();
+    print("Found ${albums.length} objects");
+    for (var element in albums) {
+      elem++;
+      if (element.name.startsWith("Unknow Album") && element.id == 1) continue;
+      if (element.imageBlob != null) continue;
+      print("Crawling album $elem / ${albums.length} ${element.name}");
+      if (elem % 100 == 0) {
+        Get.snackbar("LoadJackets : ", "$elem / ${albums.length} treated",
+            backgroundColor: Colors.white);
+      }
+      try {
+        var song = await (localDb.songs.select()
+              ..where((tbl) => tbl.albumId.equals(element.id))
+              ..limit(1))
+            .getSingleOrNull();
+        if (song == null) continue;
+        var tags = await readId3Tag(song, clearAfter: true);
+        if (tags == null) continue;
+        if (tags.pictures.isEmpty) continue;
+        print("Found song  ${song.title} ${song.id} with picture");
+        // TODO(loadJackets): Batch update @ the end
+        await (localDb.update(localDb.albums)
+              ..where((tbl) => tbl.id.equals(song.albumId!)))
+            .writeReturning(AlbumsCompanion(
+                imageBlob:
+                    d.Value(tags.pictures.first.imageData as Uint8List)));
+      } on Exception catch (e) {
+        print(e);
+        continue;
+      }
+    }
+  }
+
+  Future loadArtists() async {
+    final artists = await (localDb.artists.all()).get();
+    var client = http.Client();
+    var cnt = 0;
+    print("Found ${artists.length} objects");
+    for (var element in artists) {
+      if (element.id == 1) continue;
+      // if (element.imageUrl != null) continue;
+      cnt++;
+      if (cnt % 10 == 0) {
+        Get.snackbar("LoadArtists : ", "$cnt / ${artists.length} treated",
+            backgroundColor: Colors.white
+            // showProgressIndicator: true,
+            // isDismissible: true,
+            );
+      }
+      print("Crawling artists $cnt / ${artists.length} ${element.name}");
+      var url = Uri.https('en.wikipedia.org', '/w/rest.php/v1/search/page',
+          {"q": "${element.name} music artist", "limit": "1"});
+      var response = await client.get(url);
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      var articles = jsonDecode(response.body);
+      List<WikiInfos> pages = [];
+      if (articles['pages'] != null && articles['pages'] != []) {
+        pages = List<WikiInfos>.from(
+            articles['pages'].map((model) => WikiInfos.fromJson(model)));
+      }
+      print("Found ${pages.length} response pages");
+      if (pages.isNotEmpty) {
+        var page = pages.first;
+        if (page.thumbnail != null) {
+          await (localDb.update(localDb.artists)
+                ..where((tbl) => tbl.id.equals(element.id)))
+              .writeReturning(ArtistsCompanion(
+                  description: d.Value(page.excerpt),
+                  imageUrl: d.Value("https:${page.thumbnail!.url}")));
+        } else if (page.excerpt.isNotEmpty) {
+          await (localDb.update(localDb.artists)
+                ..where((tbl) => tbl.id.equals(element.id)))
+              .writeReturning(
+                  ArtistsCompanion(description: d.Value(page.excerpt)));
+        }
+      }
+      sleep(const Duration(seconds: 1));
     }
   }
 }
