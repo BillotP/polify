@@ -96,16 +96,16 @@ class _AlbumWidgetState extends State<AlbumWidget> {
                       children: [
                         Text(
                           album.name,
-                          style: TextStyle(color: Colors.black),
+                          style: const TextStyle(color: Colors.black),
                         ),
                         Text(
                           album.bucketPrefix,
-                          style: TextStyle(color: Colors.black),
+                          style: const TextStyle(color: Colors.black),
                         ),
                       ],
                     ),
                   ),
-                  Card(
+                  const Card(
                     child: Row(
                       children: [
                         Text("Genres"),
