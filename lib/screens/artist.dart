@@ -6,7 +6,6 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:get/get.dart';
 import 'package:polify/services/database.dart';
 import 'package:polify/services/player_service.dart';
-import 'package:html/parser.dart';
 // import 'package:posthog_flutter/posthog_flutter.dart';
 
 import 'album.dart';
@@ -63,7 +62,7 @@ class _ArtistWidgetState extends State<ArtistWidget> {
         // backgroundColor: Theme.of(context).colorScheme.background,
         backgroundColor: Colors.black,
         title: Text("${artist.name} - ${artist.bucketPrefix}"),
-        titleTextStyle: TextStyle(color: Colors.white),
+        titleTextStyle: const TextStyle(color: Colors.white),
         centerTitle: false,
         leading: IconButton(
             onPressed: () => Navigator.pop(context, "hello"),
