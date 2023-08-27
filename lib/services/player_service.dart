@@ -38,7 +38,7 @@ class SongToplay {
     }
     return songitemId.isNotEmpty
         ? MediaItem(
-            id: streamingUrl!,
+            id: songitemId,
             album: albumName,
             playable: true,
             title: title ?? "Unknow title",
@@ -129,6 +129,19 @@ class PlayerService extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future previousSong() async {
     if (playIndex - 1 >= 0 && currentPlaylist.isNotEmpty) {
       playIndex--;
+      if (player.state == PlayerState.playing ||
+          player.state == PlayerState.paused) {
+        await player.stop();
+      }
+      await play();
+    }
+  }
+
+  Future playIndexSong(int index) async {
+    if (currentPlaylist.isNotEmpty &&
+        index < currentPlaylist.length &&
+        index >= 0) {
+      playIndex = index;
       if (player.state == PlayerState.playing ||
           player.state == PlayerState.paused) {
         await player.stop();
