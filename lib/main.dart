@@ -221,7 +221,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   itemCount: snapshot.data!.length,
                   itemBuilder: (context, index) {
                     return ListTile(
-                      leading: Icon(Icons.play_arrow_sharp),
+                      leading: const Icon(Icons.play_arrow_sharp),
                       title: Text(snapshot.data![index].title),
                       onTap: () async => {
                         await player.playSongs([snapshot.data![index]]),
@@ -414,7 +414,7 @@ class _MyHomePageState extends State<MyHomePage> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8.0),
             child: SearchAnchor(
               suggestionsBuilder: (context, controller) {
                 // TODO(main) : do full text search on db items
