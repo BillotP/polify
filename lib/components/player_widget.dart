@@ -83,7 +83,8 @@ class _PlayerWidgetState extends State<PlayerWidget> {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(onPressed: () => {}, icon: Icon(Icons.my_library_music)),
+            IconButton(
+                onPressed: () => {}, icon: const Icon(Icons.my_library_music)),
             Expanded(
               child: Text(widget.player.currentPlaylist
                       .elementAt(widget.player.playIndex)
@@ -113,11 +114,11 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                 : FloatingActionButton(
                     key: const Key('pause_button'),
                     onPressed: _pause,
+                    backgroundColor: playerCtrlcolor,
                     child: const Icon(
                       Icons.pause,
                       size: 48,
                     ),
-                    backgroundColor: playerCtrlcolor,
                   ),
             IconButton(
               key: const Key('next_button'),
