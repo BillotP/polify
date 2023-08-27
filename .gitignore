@@ -48,6 +48,8 @@ env.g.dart
 /android/app/debug
 /android/app/profile
 /android/app/release
+# Other artifacts
+dist
 
 # Secrets
 .env

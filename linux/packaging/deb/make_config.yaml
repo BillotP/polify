@@ -1,0 +1,31 @@
+display_name: Polify
+package_name: polify
+maintainer:
+  name: Polify Org
+  email: linux.deb@polify.lol
+co_authors:
+  - name: Ravachol Nildock
+    email: ravachol@polify.lol
+priority: optional
+section: x11
+installed_size: 47000000
+essential: false
+icon: android/play_store_512.png
+
+postinstall_scripts:
+  - echo "Thanks for install"
+postuninstall_scripts:
+  - echo "Sorry to see you leave, remember to clean db.sqlite in your $DOCUMENTS folder"
+
+keywords:
+  - s3
+  - streaming
+  - music
+
+generic_name: Music Application
+
+categories:
+  - Music
+  - Media
+
+startup_notify: true
