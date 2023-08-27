@@ -30,31 +30,58 @@ Widget albumListTile(
 Widget albumCardTile(
         Album album, void Function(Album album, bool now) onAlbumPlay) =>
     Card(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-              iconSize: 100,
-              onPressed: () => Get.to(AlbumWidget(album: album)),
-              icon: album.imageUrl != null
-                  ? Image.network(album.imageUrl!)
-                  : const Icon(Icons.album_sharp)),
-          Text(
-            album.name,
-            style: const TextStyle(color: Colors.black),
-            textAlign: TextAlign.center,
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                  onPressed: () => onAlbumPlay(album, true),
-                  icon: const Icon(Icons.play_circle_fill)),
-              IconButton(
-                  onPressed: () => onAlbumPlay(album, false),
-                  icon: const Icon(Icons.playlist_add))
-            ],
-          ),
-        ],
+      child: Container(
+        decoration: album.imageBlob != null
+            ? BoxDecoration(
+                image: DecorationImage(
+                    fit: BoxFit.fill, image: MemoryImage(album.imageBlob!)),
+              )
+            : const BoxDecoration(
+                image: DecorationImage(
+                    fit: BoxFit.fill,
+                    image: AssetImage("assets/icon/default_album.png")),
+              ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Expanded(
+              child: IconButton(
+                  iconSize: 100,
+                  splashRadius: 100,
+                  onPressed: () => Get.to(AlbumWidget(album: album)),
+                  icon: album.imageBlob != null
+                      ? Image.memory(album.imageBlob!)
+                      : const Icon(Icons.album_sharp)),
+            ),
+            Expanded(
+              child: TextButton(
+                onPressed: () => Get.to(AlbumWidget(album: album)),
+                child: Text(
+                  album.name,
+                  style: const TextStyle(
+                      color: Colors.black, backgroundColor: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+            Card(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                      onPressed: () => onAlbumPlay(album, true),
+                      icon: const Icon(Icons.play_circle_fill)),
+                  IconButton(
+                      onPressed: () => onAlbumPlay(album, false),
+                      icon: const Icon(Icons.playlist_add)),
+                  // IconButton(
+                  //     onPressed: () => onAlbumDownload(album),
+                  //     icon: const Icon(Icons.download_for_offline))
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
