@@ -76,77 +76,100 @@ class _PlayerWidgetState extends State<PlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).primaryColor;
+    final playerCtrlcolor = Theme.of(context).secondaryHeaderColor;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            IconButton(onPressed: () => {}, icon: Icon(Icons.my_library_music)),
+            Expanded(
+              child: Text(widget.player.currentPlaylist
+                      .elementAt(widget.player.playIndex)
+                      .title ??
+                  "Unknow title"),
+            ),
             IconButton(
               key: const Key('prev_button'),
               // onPressed: _isPlaying || _isPaused ? _stop : null,
               onPressed: () => widget.player.skipToPrevious(),
               iconSize: 48.0,
               icon: const Icon(Icons.skip_previous),
-              color: color,
+              color: playerCtrlcolor,
             ),
             _isPaused
-                ? IconButton(
+                ? FloatingActionButton(
+                    backgroundColor: playerCtrlcolor,
                     key: const Key('play_button'),
                     onPressed: _play,
-                    iconSize: 48.0,
-                    icon: const Icon(Icons.play_arrow),
-                    color: color,
+                    // iconSize: 48.0,
+                    child: const Icon(
+                      Icons.play_arrow_rounded,
+                      size: 48,
+                    ),
+                    // color: playerCtrlcolor,
                   )
-                : IconButton(
+                : FloatingActionButton(
                     key: const Key('pause_button'),
                     onPressed: _pause,
-                    iconSize: 48.0,
-                    icon: const Icon(Icons.pause),
-                    color: color,
+                    child: const Icon(
+                      Icons.pause,
+                      size: 48,
+                    ),
+                    backgroundColor: playerCtrlcolor,
                   ),
-            IconButton(
-              key: const Key('stop_button'),
-              // onPressed: _isPlaying || _isPaused ? _stop : null,
-              onPressed: _stop,
-              iconSize: 48.0,
-              icon: const Icon(Icons.stop),
-              color: color,
-            ),
             IconButton(
               key: const Key('next_button'),
               // onPressed: _isPlaying || _isPaused ? _stop : null,
               onPressed: () => widget.player.nextSong(),
               iconSize: 48.0,
               icon: const Icon(Icons.skip_next_sharp),
-              color: color,
+              color: playerCtrlcolor,
             ),
           ],
         ),
-        Slider(
-          onChanged: (v) {
-            final duration = _duration;
-            if (duration == null) {
-              return;
-            }
-            final position = v * duration.inMilliseconds;
-            player.seek(Duration(milliseconds: position.round()));
-          },
-          value: (_position != null &&
-                  _duration != null &&
-                  _position!.inMilliseconds > 0 &&
-                  _position!.inMilliseconds < _duration!.inMilliseconds)
-              ? _position!.inMilliseconds / _duration!.inMilliseconds
-              : 0.0,
-        ),
-        Text(
-          _position != null
-              ? '$_positionText / $_durationText'
-              : _duration != null
-                  ? _durationText
-                  : '',
-          style: const TextStyle(fontSize: 16.0),
+        Padding(
+          padding: const EdgeInsets.all(6.0),
+          child: Row(
+            children: [
+              Text(
+                _position != null
+                    ? _positionText
+                    : _duration != null
+                        ? _durationText
+                        : '',
+                style: const TextStyle(fontSize: 16.0),
+              ),
+              Expanded(
+                child: Slider(
+                  activeColor: playerCtrlcolor,
+                  onChanged: (v) {
+                    final duration = _duration;
+                    if (duration == null) {
+                      return;
+                    }
+                    final position = v * duration.inMilliseconds;
+                    player.seek(Duration(milliseconds: position.round()));
+                  },
+                  value: (_position != null &&
+                          _duration != null &&
+                          _position!.inMilliseconds > 0 &&
+                          _position!.inMilliseconds < _duration!.inMilliseconds)
+                      ? _position!.inMilliseconds / _duration!.inMilliseconds
+                      : 0.0,
+                ),
+              ),
+              Text(
+                _position != null
+                    ? _durationText
+                    : _duration != null
+                        ? _durationText
+                        : '',
+                style: const TextStyle(fontSize: 16.0),
+              ),
+            ],
+          ),
         ),
       ],
     );
