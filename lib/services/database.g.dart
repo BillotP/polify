@@ -28,6 +28,16 @@ class $MusicBucketsTable extends MusicBuckets
           type: DriftSqlType.string,
           requiredDuringInsert: true,
           defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
+  static const VerificationMeta _endpointMeta =
+      const VerificationMeta('endpoint');
+  @override
+  late final GeneratedColumn<String> endpoint =
+      GeneratedColumn<String>('endpoint', aliasedName, false,
+          additionalChecks: GeneratedColumn.checkTextLength(
+            minTextLength: 1,
+          ),
+          type: DriftSqlType.string,
+          requiredDuringInsert: true);
   static const VerificationMeta _musicFolderPrefixMeta =
       const VerificationMeta('musicFolderPrefix');
   @override
@@ -35,7 +45,7 @@ class $MusicBucketsTable extends MusicBuckets
       GeneratedColumn<String>('music_folder_prefix', aliasedName, true,
           type: DriftSqlType.string, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns => [id, name, musicFolderPrefix];
+  List<GeneratedColumn> get $columns => [id, name, endpoint, musicFolderPrefix];
   @override
   String get aliasedName => _alias ?? 'music_buckets';
   @override
@@ -53,6 +63,12 @@ class $MusicBucketsTable extends MusicBuckets
           _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
+    }
+    if (data.containsKey('endpoint')) {
+      context.handle(_endpointMeta,
+          endpoint.isAcceptableOrUnknown(data['endpoint']!, _endpointMeta));
+    } else if (isInserting) {
+      context.missing(_endpointMeta);
     }
     if (data.containsKey('music_folder_prefix')) {
       context.handle(
@@ -73,6 +89,8 @@ class $MusicBucketsTable extends MusicBuckets
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      endpoint: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}endpoint'])!,
       musicFolderPrefix: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}music_folder_prefix']),
     );
@@ -87,14 +105,19 @@ class $MusicBucketsTable extends MusicBuckets
 class MusicBucket extends DataClass implements Insertable<MusicBucket> {
   final int id;
   final String name;
+  final String endpoint;
   final String? musicFolderPrefix;
   const MusicBucket(
-      {required this.id, required this.name, this.musicFolderPrefix});
+      {required this.id,
+      required this.name,
+      required this.endpoint,
+      this.musicFolderPrefix});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    map['endpoint'] = Variable<String>(endpoint);
     if (!nullToAbsent || musicFolderPrefix != null) {
       map['music_folder_prefix'] = Variable<String>(musicFolderPrefix);
     }
@@ -105,6 +128,7 @@ class MusicBucket extends DataClass implements Insertable<MusicBucket> {
     return MusicBucketsCompanion(
       id: Value(id),
       name: Value(name),
+      endpoint: Value(endpoint),
       musicFolderPrefix: musicFolderPrefix == null && nullToAbsent
           ? const Value.absent()
           : Value(musicFolderPrefix),
@@ -117,6 +141,7 @@ class MusicBucket extends DataClass implements Insertable<MusicBucket> {
     return MusicBucket(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      endpoint: serializer.fromJson<String>(json['endpoint']),
       musicFolderPrefix:
           serializer.fromJson<String?>(json['musicFolderPrefix']),
     );
@@ -127,6 +152,7 @@ class MusicBucket extends DataClass implements Insertable<MusicBucket> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'endpoint': serializer.toJson<String>(endpoint),
       'musicFolderPrefix': serializer.toJson<String?>(musicFolderPrefix),
     };
   }
@@ -134,10 +160,12 @@ class MusicBucket extends DataClass implements Insertable<MusicBucket> {
   MusicBucket copyWith(
           {int? id,
           String? name,
+          String? endpoint,
           Value<String?> musicFolderPrefix = const Value.absent()}) =>
       MusicBucket(
         id: id ?? this.id,
         name: name ?? this.name,
+        endpoint: endpoint ?? this.endpoint,
         musicFolderPrefix: musicFolderPrefix.present
             ? musicFolderPrefix.value
             : this.musicFolderPrefix,
@@ -147,44 +175,52 @@ class MusicBucket extends DataClass implements Insertable<MusicBucket> {
     return (StringBuffer('MusicBucket(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('endpoint: $endpoint, ')
           ..write('musicFolderPrefix: $musicFolderPrefix')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, musicFolderPrefix);
+  int get hashCode => Object.hash(id, name, endpoint, musicFolderPrefix);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is MusicBucket &&
           other.id == this.id &&
           other.name == this.name &&
+          other.endpoint == this.endpoint &&
           other.musicFolderPrefix == this.musicFolderPrefix);
 }
 
 class MusicBucketsCompanion extends UpdateCompanion<MusicBucket> {
   final Value<int> id;
   final Value<String> name;
+  final Value<String> endpoint;
   final Value<String?> musicFolderPrefix;
   const MusicBucketsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.endpoint = const Value.absent(),
     this.musicFolderPrefix = const Value.absent(),
   });
   MusicBucketsCompanion.insert({
     this.id = const Value.absent(),
     required String name,
+    required String endpoint,
     this.musicFolderPrefix = const Value.absent(),
-  }) : name = Value(name);
+  })  : name = Value(name),
+        endpoint = Value(endpoint);
   static Insertable<MusicBucket> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<String>? endpoint,
     Expression<String>? musicFolderPrefix,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (endpoint != null) 'endpoint': endpoint,
       if (musicFolderPrefix != null) 'music_folder_prefix': musicFolderPrefix,
     });
   }
@@ -192,10 +228,12 @@ class MusicBucketsCompanion extends UpdateCompanion<MusicBucket> {
   MusicBucketsCompanion copyWith(
       {Value<int>? id,
       Value<String>? name,
+      Value<String>? endpoint,
       Value<String?>? musicFolderPrefix}) {
     return MusicBucketsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
+      endpoint: endpoint ?? this.endpoint,
       musicFolderPrefix: musicFolderPrefix ?? this.musicFolderPrefix,
     );
   }
@@ -209,6 +247,9 @@ class MusicBucketsCompanion extends UpdateCompanion<MusicBucket> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (endpoint.present) {
+      map['endpoint'] = Variable<String>(endpoint.value);
+    }
     if (musicFolderPrefix.present) {
       map['music_folder_prefix'] = Variable<String>(musicFolderPrefix.value);
     }
@@ -220,6 +261,7 @@ class MusicBucketsCompanion extends UpdateCompanion<MusicBucket> {
     return (StringBuffer('MusicBucketsCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('endpoint: $endpoint, ')
           ..write('musicFolderPrefix: $musicFolderPrefix')
           ..write(')'))
         .toString();
@@ -1602,8 +1644,15 @@ class $ArtistsTable extends Artists with TableInfo<$ArtistsTable, Artist> {
           ),
           type: DriftSqlType.string,
           requiredDuringInsert: false);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
   @override
-  List<GeneratedColumn> get $columns => [id, bucketPrefix, name, imageUrl];
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, bucketPrefix, name, imageUrl, description];
   @override
   String get aliasedName => _alias ?? 'artists';
   @override
@@ -1634,6 +1683,12 @@ class $ArtistsTable extends Artists with TableInfo<$ArtistsTable, Artist> {
       context.handle(_imageUrlMeta,
           imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta));
     }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
     return context;
   }
 
@@ -1651,6 +1706,8 @@ class $ArtistsTable extends Artists with TableInfo<$ArtistsTable, Artist> {
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
       imageUrl: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}image_url']),
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
     );
   }
 
@@ -1665,11 +1722,13 @@ class Artist extends DataClass implements Insertable<Artist> {
   final String bucketPrefix;
   final String name;
   final String? imageUrl;
+  final String? description;
   const Artist(
       {required this.id,
       required this.bucketPrefix,
       required this.name,
-      this.imageUrl});
+      this.imageUrl,
+      this.description});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1678,6 +1737,9 @@ class Artist extends DataClass implements Insertable<Artist> {
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || imageUrl != null) {
       map['image_url'] = Variable<String>(imageUrl);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
     }
     return map;
   }
@@ -1690,6 +1752,9 @@ class Artist extends DataClass implements Insertable<Artist> {
       imageUrl: imageUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(imageUrl),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
     );
   }
 
@@ -1701,6 +1766,7 @@ class Artist extends DataClass implements Insertable<Artist> {
       bucketPrefix: serializer.fromJson<String>(json['bucketPrefix']),
       name: serializer.fromJson<String>(json['name']),
       imageUrl: serializer.fromJson<String?>(json['imageUrl']),
+      description: serializer.fromJson<String?>(json['description']),
     );
   }
   @override
@@ -1711,6 +1777,7 @@ class Artist extends DataClass implements Insertable<Artist> {
       'bucketPrefix': serializer.toJson<String>(bucketPrefix),
       'name': serializer.toJson<String>(name),
       'imageUrl': serializer.toJson<String?>(imageUrl),
+      'description': serializer.toJson<String?>(description),
     };
   }
 
@@ -1718,12 +1785,14 @@ class Artist extends DataClass implements Insertable<Artist> {
           {int? id,
           String? bucketPrefix,
           String? name,
-          Value<String?> imageUrl = const Value.absent()}) =>
+          Value<String?> imageUrl = const Value.absent(),
+          Value<String?> description = const Value.absent()}) =>
       Artist(
         id: id ?? this.id,
         bucketPrefix: bucketPrefix ?? this.bucketPrefix,
         name: name ?? this.name,
         imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
+        description: description.present ? description.value : this.description,
       );
   @override
   String toString() {
@@ -1731,13 +1800,15 @@ class Artist extends DataClass implements Insertable<Artist> {
           ..write('id: $id, ')
           ..write('bucketPrefix: $bucketPrefix, ')
           ..write('name: $name, ')
-          ..write('imageUrl: $imageUrl')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('description: $description')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, bucketPrefix, name, imageUrl);
+  int get hashCode =>
+      Object.hash(id, bucketPrefix, name, imageUrl, description);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1745,7 +1816,8 @@ class Artist extends DataClass implements Insertable<Artist> {
           other.id == this.id &&
           other.bucketPrefix == this.bucketPrefix &&
           other.name == this.name &&
-          other.imageUrl == this.imageUrl);
+          other.imageUrl == this.imageUrl &&
+          other.description == this.description);
 }
 
 class ArtistsCompanion extends UpdateCompanion<Artist> {
@@ -1753,17 +1825,20 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
   final Value<String> bucketPrefix;
   final Value<String> name;
   final Value<String?> imageUrl;
+  final Value<String?> description;
   const ArtistsCompanion({
     this.id = const Value.absent(),
     this.bucketPrefix = const Value.absent(),
     this.name = const Value.absent(),
     this.imageUrl = const Value.absent(),
+    this.description = const Value.absent(),
   });
   ArtistsCompanion.insert({
     this.id = const Value.absent(),
     required String bucketPrefix,
     required String name,
     this.imageUrl = const Value.absent(),
+    this.description = const Value.absent(),
   })  : bucketPrefix = Value(bucketPrefix),
         name = Value(name);
   static Insertable<Artist> custom({
@@ -1771,12 +1846,14 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
     Expression<String>? bucketPrefix,
     Expression<String>? name,
     Expression<String>? imageUrl,
+    Expression<String>? description,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (bucketPrefix != null) 'bucket_prefix': bucketPrefix,
       if (name != null) 'name': name,
       if (imageUrl != null) 'image_url': imageUrl,
+      if (description != null) 'description': description,
     });
   }
 
@@ -1784,12 +1861,14 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
       {Value<int>? id,
       Value<String>? bucketPrefix,
       Value<String>? name,
-      Value<String?>? imageUrl}) {
+      Value<String?>? imageUrl,
+      Value<String?>? description}) {
     return ArtistsCompanion(
       id: id ?? this.id,
       bucketPrefix: bucketPrefix ?? this.bucketPrefix,
       name: name ?? this.name,
       imageUrl: imageUrl ?? this.imageUrl,
+      description: description ?? this.description,
     );
   }
 
@@ -1808,6 +1887,9 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
     if (imageUrl.present) {
       map['image_url'] = Variable<String>(imageUrl.value);
     }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
     return map;
   }
 
@@ -1817,7 +1899,8 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
           ..write('id: $id, ')
           ..write('bucketPrefix: $bucketPrefix, ')
           ..write('name: $name, ')
-          ..write('imageUrl: $imageUrl')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('description: $description')
           ..write(')'))
         .toString();
   }
@@ -2437,6 +2520,12 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
           ),
           type: DriftSqlType.string,
           requiredDuringInsert: false);
+  static const VerificationMeta _imageBlobMeta =
+      const VerificationMeta('imageBlob');
+  @override
+  late final GeneratedColumn<Uint8List> imageBlob = GeneratedColumn<Uint8List>(
+      'image_blob', aliasedName, true,
+      type: DriftSqlType.blob, requiredDuringInsert: false);
   static const VerificationMeta _yearMeta = const VerificationMeta('year');
   @override
   late final GeneratedColumn<DateTime> year = GeneratedColumn<DateTime>(
@@ -2446,7 +2535,7 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
       requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, name, bucketPrefix, imageUrl, year];
+      [id, name, bucketPrefix, imageUrl, imageBlob, year];
   @override
   String get aliasedName => _alias ?? 'albums';
   @override
@@ -2477,6 +2566,10 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
       context.handle(_imageUrlMeta,
           imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta));
     }
+    if (data.containsKey('image_blob')) {
+      context.handle(_imageBlobMeta,
+          imageBlob.isAcceptableOrUnknown(data['image_blob']!, _imageBlobMeta));
+    }
     if (data.containsKey('year')) {
       context.handle(
           _yearMeta, year.isAcceptableOrUnknown(data['year']!, _yearMeta));
@@ -2500,6 +2593,8 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
           .read(DriftSqlType.string, data['${effectivePrefix}bucket_prefix'])!,
       imageUrl: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}image_url']),
+      imageBlob: attachedDatabase.typeMapping
+          .read(DriftSqlType.blob, data['${effectivePrefix}image_blob']),
       year: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}year'])!,
     );
@@ -2516,12 +2611,14 @@ class Album extends DataClass implements Insertable<Album> {
   final String name;
   final String bucketPrefix;
   final String? imageUrl;
+  final Uint8List? imageBlob;
   final DateTime year;
   const Album(
       {required this.id,
       required this.name,
       required this.bucketPrefix,
       this.imageUrl,
+      this.imageBlob,
       required this.year});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2531,6 +2628,9 @@ class Album extends DataClass implements Insertable<Album> {
     map['bucket_prefix'] = Variable<String>(bucketPrefix);
     if (!nullToAbsent || imageUrl != null) {
       map['image_url'] = Variable<String>(imageUrl);
+    }
+    if (!nullToAbsent || imageBlob != null) {
+      map['image_blob'] = Variable<Uint8List>(imageBlob);
     }
     map['year'] = Variable<DateTime>(year);
     return map;
@@ -2544,6 +2644,9 @@ class Album extends DataClass implements Insertable<Album> {
       imageUrl: imageUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(imageUrl),
+      imageBlob: imageBlob == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imageBlob),
       year: Value(year),
     );
   }
@@ -2556,6 +2659,7 @@ class Album extends DataClass implements Insertable<Album> {
       name: serializer.fromJson<String>(json['name']),
       bucketPrefix: serializer.fromJson<String>(json['bucketPrefix']),
       imageUrl: serializer.fromJson<String?>(json['imageUrl']),
+      imageBlob: serializer.fromJson<Uint8List?>(json['imageBlob']),
       year: serializer.fromJson<DateTime>(json['year']),
     );
   }
@@ -2567,6 +2671,7 @@ class Album extends DataClass implements Insertable<Album> {
       'name': serializer.toJson<String>(name),
       'bucketPrefix': serializer.toJson<String>(bucketPrefix),
       'imageUrl': serializer.toJson<String?>(imageUrl),
+      'imageBlob': serializer.toJson<Uint8List?>(imageBlob),
       'year': serializer.toJson<DateTime>(year),
     };
   }
@@ -2576,12 +2681,14 @@ class Album extends DataClass implements Insertable<Album> {
           String? name,
           String? bucketPrefix,
           Value<String?> imageUrl = const Value.absent(),
+          Value<Uint8List?> imageBlob = const Value.absent(),
           DateTime? year}) =>
       Album(
         id: id ?? this.id,
         name: name ?? this.name,
         bucketPrefix: bucketPrefix ?? this.bucketPrefix,
         imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
+        imageBlob: imageBlob.present ? imageBlob.value : this.imageBlob,
         year: year ?? this.year,
       );
   @override
@@ -2591,13 +2698,15 @@ class Album extends DataClass implements Insertable<Album> {
           ..write('name: $name, ')
           ..write('bucketPrefix: $bucketPrefix, ')
           ..write('imageUrl: $imageUrl, ')
+          ..write('imageBlob: $imageBlob, ')
           ..write('year: $year')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, bucketPrefix, imageUrl, year);
+  int get hashCode => Object.hash(id, name, bucketPrefix, imageUrl,
+      $driftBlobEquality.hash(imageBlob), year);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2606,6 +2715,7 @@ class Album extends DataClass implements Insertable<Album> {
           other.name == this.name &&
           other.bucketPrefix == this.bucketPrefix &&
           other.imageUrl == this.imageUrl &&
+          $driftBlobEquality.equals(other.imageBlob, this.imageBlob) &&
           other.year == this.year);
 }
 
@@ -2614,12 +2724,14 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
   final Value<String> name;
   final Value<String> bucketPrefix;
   final Value<String?> imageUrl;
+  final Value<Uint8List?> imageBlob;
   final Value<DateTime> year;
   const AlbumsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.bucketPrefix = const Value.absent(),
     this.imageUrl = const Value.absent(),
+    this.imageBlob = const Value.absent(),
     this.year = const Value.absent(),
   });
   AlbumsCompanion.insert({
@@ -2627,6 +2739,7 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
     required String name,
     required String bucketPrefix,
     this.imageUrl = const Value.absent(),
+    this.imageBlob = const Value.absent(),
     required DateTime year,
   })  : name = Value(name),
         bucketPrefix = Value(bucketPrefix),
@@ -2636,6 +2749,7 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
     Expression<String>? name,
     Expression<String>? bucketPrefix,
     Expression<String>? imageUrl,
+    Expression<Uint8List>? imageBlob,
     Expression<DateTime>? year,
   }) {
     return RawValuesInsertable({
@@ -2643,6 +2757,7 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
       if (name != null) 'name': name,
       if (bucketPrefix != null) 'bucket_prefix': bucketPrefix,
       if (imageUrl != null) 'image_url': imageUrl,
+      if (imageBlob != null) 'image_blob': imageBlob,
       if (year != null) 'year': year,
     });
   }
@@ -2652,12 +2767,14 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
       Value<String>? name,
       Value<String>? bucketPrefix,
       Value<String?>? imageUrl,
+      Value<Uint8List?>? imageBlob,
       Value<DateTime>? year}) {
     return AlbumsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       bucketPrefix: bucketPrefix ?? this.bucketPrefix,
       imageUrl: imageUrl ?? this.imageUrl,
+      imageBlob: imageBlob ?? this.imageBlob,
       year: year ?? this.year,
     );
   }
@@ -2677,6 +2794,9 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
     if (imageUrl.present) {
       map['image_url'] = Variable<String>(imageUrl.value);
     }
+    if (imageBlob.present) {
+      map['image_blob'] = Variable<Uint8List>(imageBlob.value);
+    }
     if (year.present) {
       map['year'] = Variable<DateTime>(year.value);
     }
@@ -2690,6 +2810,7 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
           ..write('name: $name, ')
           ..write('bucketPrefix: $bucketPrefix, ')
           ..write('imageUrl: $imageUrl, ')
+          ..write('imageBlob: $imageBlob, ')
           ..write('year: $year')
           ..write(')'))
         .toString();

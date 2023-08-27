@@ -12,6 +12,7 @@ part 'database.g.dart';
 class MusicBuckets extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().unique().withLength(min: 1)();
+  TextColumn get endpoint => text().withLength(min: 1)();
   TextColumn get musicFolderPrefix => text().nullable()();
 }
 
@@ -56,6 +57,7 @@ class Artists extends Table {
   TextColumn get bucketPrefix => text().withLength(min: 1)();
   TextColumn get name => text().unique().withLength(min: 1)();
   TextColumn get imageUrl => text().nullable().withLength(min: 1)();
+  TextColumn get description => text().nullable()();
 }
 
 class ArtistGenres extends Table {
@@ -78,6 +80,7 @@ class Albums extends Table {
   TextColumn get name => text().unique().withLength(min: 1)();
   TextColumn get bucketPrefix => text().withLength(min: 1)();
   TextColumn get imageUrl => text().nullable().withLength(min: 1)();
+  BlobColumn get imageBlob => blob().nullable()();
   DateTimeColumn get year =>
       dateTime().check(year.isBiggerThan(Constant(DateTime(1000))))();
 }
@@ -108,6 +111,7 @@ class Songs extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get title => text().withLength(min: 1)();
   TextColumn get bucketName => text().references(MusicBuckets, #name)();
+
   TextColumn get bucketKey => text().unique().withLength(min: 1)();
   TextColumn get streamUrl => text().nullable().withLength(min: 1)();
   TextColumn get localPath => text().nullable().nullable()();
