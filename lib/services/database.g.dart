@@ -3507,16 +3507,13 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
   static const VerificationMeta _isSingleMeta =
       const VerificationMeta('isSingle');
   @override
-  late final GeneratedColumn<bool> isSingle =
-      GeneratedColumn<bool>('is_single', aliasedName, false,
-          type: DriftSqlType.bool,
-          requiredDuringInsert: false,
-          defaultConstraints: GeneratedColumn.constraintsDependsOnDialect({
-            SqlDialect.sqlite: 'CHECK ("is_single" IN (0, 1))',
-            SqlDialect.mysql: '',
-            SqlDialect.postgres: '',
-          }),
-          defaultValue: const Constant(false));
+  late final GeneratedColumn<bool> isSingle = GeneratedColumn<bool>(
+      'is_single', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_single" IN (0, 1))'),
+      defaultValue: const Constant(false));
   static const VerificationMeta _durationMeta =
       const VerificationMeta('duration');
   @override

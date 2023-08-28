@@ -4,10 +4,10 @@ import 'package:drift/drift.dart' as d;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:polify/services/database.dart';
-import 'package:polify/services/player_service.dart';
+import 'package:polify/services/player.dart';
 // import 'package:posthog_flutter/posthog_flutter.dart';
 
-import '../services/bucket_service.dart';
+import '../services/bucket.dart';
 
 class AlbumWidget extends StatefulWidget {
   final Album album;

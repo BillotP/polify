@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:polify/services/player_service.dart';
+import 'package:polify/services/player.dart';
 
 class PlayerWidget extends StatefulWidget {
   final PlayerService player = Get.find();
@@ -215,11 +215,11 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     setState(() => _playerState = PlayerState.paused);
   }
 
-  Future<void> _stop() async {
-    await player.stop();
-    setState(() {
-      _playerState = PlayerState.stopped;
-      _position = Duration.zero;
-    });
-  }
+  // Future<void> _stop() async {
+  //   await player.stop();
+  //   setState(() {
+  //     _playerState = PlayerState.stopped;
+  //     _position = Duration.zero;
+  //   });
+  // }
 }

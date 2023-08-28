@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:get/get.dart';
 import 'package:polify/services/database.dart';
-import 'package:polify/services/player_service.dart';
+import 'package:polify/services/player.dart';
 // import 'package:posthog_flutter/posthog_flutter.dart';
 
 import 'album.dart';
-import '../services/bucket_service.dart';
+import '../services/bucket.dart';
 
 class ArtistWidget extends StatefulWidget {
   final Artist artist;
