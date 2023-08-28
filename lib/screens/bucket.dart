@@ -29,9 +29,10 @@ class _BucketWidgetState extends State<BucketWidget> {
 
     // we will log the name, size and path of the
     // first picked file (if multiple are selected)
-    print(result.files.first.name);
-    print(result.files.first.size);
-    print(result.files.first.path);
+    // print(result.files.first.name);
+    // print(result.files.first.size);
+    // print(result.files.first.path);
+    // TODO(bucket): implement upload file to bucket
   }
 
   @override
