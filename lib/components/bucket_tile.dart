@@ -40,7 +40,10 @@ Widget bucketCardTile(MusicBucket bucket, bool loading,
                 iconSize: 100,
                 splashRadius: 100,
                 onPressed: () => Get.to(BucketWidget(bucket: bucket)),
-                icon: const Icon(Icons.storage_rounded)),
+                icon: const Icon(
+                  Icons.storage_outlined,
+                  color: Colors.black,
+                )),
           ),
           Expanded(
             child: Center(
@@ -48,6 +51,7 @@ Widget bucketCardTile(MusicBucket bucket, bool loading,
                 onPressed: () => Get.to(BucketWidget(bucket: bucket)),
                 icon: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       bucket.name,
