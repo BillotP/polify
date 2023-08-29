@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' as d;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:polify/services/database.dart';
 import 'package:polify/services/player.dart';
 
 class PlayerWidget extends StatefulWidget {
@@ -22,6 +24,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   PlayerState? _playerState;
   Duration? _duration;
   Duration? _position;
+  final LocalDB db = Get.find();
 
   StreamSubscription? _durationSubscription;
   StreamSubscription? _positionSubscription;
@@ -84,14 +87,6 @@ class _PlayerWidgetState extends State<PlayerWidget> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-                onPressed: () => {}, icon: const Icon(Icons.my_library_music)),
-            Expanded(
-              child: Text(widget.player.currentPlaylist
-                      .elementAt(widget.player.playIndex)
-                      .title ??
-                  "Unknow title"),
-            ),
-            IconButton(
               key: const Key('prev_button'),
               // onPressed: _isPlaying || _isPaused ? _stop : null,
               onPressed: () => widget.player.skipToPrevious(),
@@ -127,6 +122,22 @@ class _PlayerWidgetState extends State<PlayerWidget> {
               iconSize: 48.0,
               icon: const Icon(Icons.skip_next_sharp),
               color: playerCtrlcolor,
+            ),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Icon(
+                Icons.my_library_music,
+                color: Colors.white,
+              ),
+            ),
+            Expanded(
+              child: Text(
+                widget.player.currentPlaylist
+                        .elementAt(widget.player.playIndex)
+                        .title ??
+                    "Unknow title",
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
           ],
         ),
@@ -178,6 +189,14 @@ class _PlayerWidgetState extends State<PlayerWidget> {
 
   void _initStreams() {
     _durationSubscription = player.onDurationChanged.listen((duration) {
+      var currSong = widget.player.currentPlaylist[widget.player.playIndex];
+      if (currSong.song.duration.isEqual(1) && duration.inSeconds > 1) {
+        print(
+            "Song ${widget.player.currentPlaylist[widget.player.playIndex].title} duration : ${duration.toString()}");
+        (db.update(db.songs)..where((tbl) => tbl.id.equals(currSong.song.id)))
+            .writeReturning(
+                SongsCompanion(duration: d.Value(duration.inSeconds)));
+      }
       setState(() => _duration = duration);
     });
 
