@@ -105,16 +105,16 @@ class _AlbumWidgetState extends State<AlbumWidget> {
                       ],
                     ),
                   ),
-                  const Card(
-                    child: Row(
-                      children: [
-                        Text("Genres"),
-                        // genres != null
-                        //     ? genres!.map((e) => Text(e.genreId)).toList()
-                        //     : null
-                      ],
-                    ),
-                  ),
+                  // const Card(
+                  //   child: Row(
+                  //     children: [
+                  //       Text("Genres"),
+                  //       // genres != null
+                  //       //     ? genres!.map((e) => Text(e.genreId)).toList()
+                  //       //     : null
+                  //     ],
+                  //   ),
+                  // ),
                   Card(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -161,10 +161,10 @@ class _AlbumWidgetState extends State<AlbumWidget> {
                                       [songs![index]],
                                       replaceCurrent: false),
                                   icon: const Icon(Icons.playlist_add)),
-                              IconButton(
-                                  onPressed: () =>
-                                      srv.readId3Tag(songs![index]),
-                                  icon: const Icon(Icons.info_outline_rounded)),
+                              // IconButton(
+                              //     onPressed: () =>
+                              //         srv.readId3Tag(songs![index]),
+                              //     icon: const Icon(Icons.info_outline_rounded)),
                               IconButton(
                                   onPressed: () =>
                                       songs![index].localPath != null
