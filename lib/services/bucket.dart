@@ -223,13 +223,17 @@ class MusicBucketsService {
   /// and save it to local db
   Future<Song> fetchUrl(Song song) async {
     try {
+      const expires = Duration(days: 7);
       var songUrl = await s3storage.presignedGetObject(
         song.bucketName,
         song.bucketKey,
+        expires: expires.inSeconds,
       );
       var updated = await (localDb.update(localDb.songs)
             ..where((tbl) => tbl.bucketKey.equals(song.bucketKey)))
-          .writeReturning(SongsCompanion(streamUrl: d.Value(songUrl)));
+          .writeReturning(SongsCompanion(
+              streamUrl: d.Value(songUrl),
+              streamUrlExpiration: d.Value(DateTime.now().add(expires))));
       return updated.first;
     } on Exception catch (e) {
       Get.snackbar("Something bad happened", e.toString());

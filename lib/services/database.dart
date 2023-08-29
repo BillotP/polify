@@ -114,6 +114,7 @@ class Songs extends Table {
 
   TextColumn get bucketKey => text().unique().withLength(min: 1)();
   TextColumn get streamUrl => text().nullable().withLength(min: 1)();
+  DateTimeColumn get streamUrlExpiration => dateTime().nullable()();
   TextColumn get localPath => text().nullable().nullable()();
   TextColumn get imageUrl => text().nullable().withLength(min: 1)();
   DateTimeColumn get year =>

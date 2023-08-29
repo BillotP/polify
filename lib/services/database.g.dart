@@ -3481,6 +3481,12 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
           ),
           type: DriftSqlType.string,
           requiredDuringInsert: false);
+  static const VerificationMeta _streamUrlExpirationMeta =
+      const VerificationMeta('streamUrlExpiration');
+  @override
+  late final GeneratedColumn<DateTime> streamUrlExpiration =
+      GeneratedColumn<DateTime>('stream_url_expiration', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
   static const VerificationMeta _localPathMeta =
       const VerificationMeta('localPath');
   @override
@@ -3538,6 +3544,7 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
         bucketName,
         bucketKey,
         streamUrl,
+        streamUrlExpiration,
         localPath,
         imageUrl,
         year,
@@ -3580,6 +3587,12 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
     if (data.containsKey('stream_url')) {
       context.handle(_streamUrlMeta,
           streamUrl.isAcceptableOrUnknown(data['stream_url']!, _streamUrlMeta));
+    }
+    if (data.containsKey('stream_url_expiration')) {
+      context.handle(
+          _streamUrlExpirationMeta,
+          streamUrlExpiration.isAcceptableOrUnknown(
+              data['stream_url_expiration']!, _streamUrlExpirationMeta));
     }
     if (data.containsKey('local_path')) {
       context.handle(_localPathMeta,
@@ -3628,6 +3641,9 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
           .read(DriftSqlType.string, data['${effectivePrefix}bucket_key'])!,
       streamUrl: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}stream_url']),
+      streamUrlExpiration: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime,
+          data['${effectivePrefix}stream_url_expiration']),
       localPath: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}local_path']),
       imageUrl: attachedDatabase.typeMapping
@@ -3655,6 +3671,7 @@ class Song extends DataClass implements Insertable<Song> {
   final String bucketName;
   final String bucketKey;
   final String? streamUrl;
+  final DateTime? streamUrlExpiration;
   final String? localPath;
   final String? imageUrl;
   final DateTime year;
@@ -3667,6 +3684,7 @@ class Song extends DataClass implements Insertable<Song> {
       required this.bucketName,
       required this.bucketKey,
       this.streamUrl,
+      this.streamUrlExpiration,
       this.localPath,
       this.imageUrl,
       required this.year,
@@ -3682,6 +3700,9 @@ class Song extends DataClass implements Insertable<Song> {
     map['bucket_key'] = Variable<String>(bucketKey);
     if (!nullToAbsent || streamUrl != null) {
       map['stream_url'] = Variable<String>(streamUrl);
+    }
+    if (!nullToAbsent || streamUrlExpiration != null) {
+      map['stream_url_expiration'] = Variable<DateTime>(streamUrlExpiration);
     }
     if (!nullToAbsent || localPath != null) {
       map['local_path'] = Variable<String>(localPath);
@@ -3707,6 +3728,9 @@ class Song extends DataClass implements Insertable<Song> {
       streamUrl: streamUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(streamUrl),
+      streamUrlExpiration: streamUrlExpiration == null && nullToAbsent
+          ? const Value.absent()
+          : Value(streamUrlExpiration),
       localPath: localPath == null && nullToAbsent
           ? const Value.absent()
           : Value(localPath),
@@ -3731,6 +3755,8 @@ class Song extends DataClass implements Insertable<Song> {
       bucketName: serializer.fromJson<String>(json['bucketName']),
       bucketKey: serializer.fromJson<String>(json['bucketKey']),
       streamUrl: serializer.fromJson<String?>(json['streamUrl']),
+      streamUrlExpiration:
+          serializer.fromJson<DateTime?>(json['streamUrlExpiration']),
       localPath: serializer.fromJson<String?>(json['localPath']),
       imageUrl: serializer.fromJson<String?>(json['imageUrl']),
       year: serializer.fromJson<DateTime>(json['year']),
@@ -3748,6 +3774,7 @@ class Song extends DataClass implements Insertable<Song> {
       'bucketName': serializer.toJson<String>(bucketName),
       'bucketKey': serializer.toJson<String>(bucketKey),
       'streamUrl': serializer.toJson<String?>(streamUrl),
+      'streamUrlExpiration': serializer.toJson<DateTime?>(streamUrlExpiration),
       'localPath': serializer.toJson<String?>(localPath),
       'imageUrl': serializer.toJson<String?>(imageUrl),
       'year': serializer.toJson<DateTime>(year),
@@ -3763,6 +3790,7 @@ class Song extends DataClass implements Insertable<Song> {
           String? bucketName,
           String? bucketKey,
           Value<String?> streamUrl = const Value.absent(),
+          Value<DateTime?> streamUrlExpiration = const Value.absent(),
           Value<String?> localPath = const Value.absent(),
           Value<String?> imageUrl = const Value.absent(),
           DateTime? year,
@@ -3775,6 +3803,9 @@ class Song extends DataClass implements Insertable<Song> {
         bucketName: bucketName ?? this.bucketName,
         bucketKey: bucketKey ?? this.bucketKey,
         streamUrl: streamUrl.present ? streamUrl.value : this.streamUrl,
+        streamUrlExpiration: streamUrlExpiration.present
+            ? streamUrlExpiration.value
+            : this.streamUrlExpiration,
         localPath: localPath.present ? localPath.value : this.localPath,
         imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
         year: year ?? this.year,
@@ -3790,6 +3821,7 @@ class Song extends DataClass implements Insertable<Song> {
           ..write('bucketName: $bucketName, ')
           ..write('bucketKey: $bucketKey, ')
           ..write('streamUrl: $streamUrl, ')
+          ..write('streamUrlExpiration: $streamUrlExpiration, ')
           ..write('localPath: $localPath, ')
           ..write('imageUrl: $imageUrl, ')
           ..write('year: $year, ')
@@ -3801,8 +3833,19 @@ class Song extends DataClass implements Insertable<Song> {
   }
 
   @override
-  int get hashCode => Object.hash(id, title, bucketName, bucketKey, streamUrl,
-      localPath, imageUrl, year, isSingle, duration, albumId);
+  int get hashCode => Object.hash(
+      id,
+      title,
+      bucketName,
+      bucketKey,
+      streamUrl,
+      streamUrlExpiration,
+      localPath,
+      imageUrl,
+      year,
+      isSingle,
+      duration,
+      albumId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3812,6 +3855,7 @@ class Song extends DataClass implements Insertable<Song> {
           other.bucketName == this.bucketName &&
           other.bucketKey == this.bucketKey &&
           other.streamUrl == this.streamUrl &&
+          other.streamUrlExpiration == this.streamUrlExpiration &&
           other.localPath == this.localPath &&
           other.imageUrl == this.imageUrl &&
           other.year == this.year &&
@@ -3826,6 +3870,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
   final Value<String> bucketName;
   final Value<String> bucketKey;
   final Value<String?> streamUrl;
+  final Value<DateTime?> streamUrlExpiration;
   final Value<String?> localPath;
   final Value<String?> imageUrl;
   final Value<DateTime> year;
@@ -3838,6 +3883,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
     this.bucketName = const Value.absent(),
     this.bucketKey = const Value.absent(),
     this.streamUrl = const Value.absent(),
+    this.streamUrlExpiration = const Value.absent(),
     this.localPath = const Value.absent(),
     this.imageUrl = const Value.absent(),
     this.year = const Value.absent(),
@@ -3851,6 +3897,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
     required String bucketName,
     required String bucketKey,
     this.streamUrl = const Value.absent(),
+    this.streamUrlExpiration = const Value.absent(),
     this.localPath = const Value.absent(),
     this.imageUrl = const Value.absent(),
     required DateTime year,
@@ -3868,6 +3915,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
     Expression<String>? bucketName,
     Expression<String>? bucketKey,
     Expression<String>? streamUrl,
+    Expression<DateTime>? streamUrlExpiration,
     Expression<String>? localPath,
     Expression<String>? imageUrl,
     Expression<DateTime>? year,
@@ -3881,6 +3929,8 @@ class SongsCompanion extends UpdateCompanion<Song> {
       if (bucketName != null) 'bucket_name': bucketName,
       if (bucketKey != null) 'bucket_key': bucketKey,
       if (streamUrl != null) 'stream_url': streamUrl,
+      if (streamUrlExpiration != null)
+        'stream_url_expiration': streamUrlExpiration,
       if (localPath != null) 'local_path': localPath,
       if (imageUrl != null) 'image_url': imageUrl,
       if (year != null) 'year': year,
@@ -3896,6 +3946,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
       Value<String>? bucketName,
       Value<String>? bucketKey,
       Value<String?>? streamUrl,
+      Value<DateTime?>? streamUrlExpiration,
       Value<String?>? localPath,
       Value<String?>? imageUrl,
       Value<DateTime>? year,
@@ -3908,6 +3959,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
       bucketName: bucketName ?? this.bucketName,
       bucketKey: bucketKey ?? this.bucketKey,
       streamUrl: streamUrl ?? this.streamUrl,
+      streamUrlExpiration: streamUrlExpiration ?? this.streamUrlExpiration,
       localPath: localPath ?? this.localPath,
       imageUrl: imageUrl ?? this.imageUrl,
       year: year ?? this.year,
@@ -3934,6 +3986,10 @@ class SongsCompanion extends UpdateCompanion<Song> {
     }
     if (streamUrl.present) {
       map['stream_url'] = Variable<String>(streamUrl.value);
+    }
+    if (streamUrlExpiration.present) {
+      map['stream_url_expiration'] =
+          Variable<DateTime>(streamUrlExpiration.value);
     }
     if (localPath.present) {
       map['local_path'] = Variable<String>(localPath.value);
@@ -3964,6 +4020,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
           ..write('bucketName: $bucketName, ')
           ..write('bucketKey: $bucketKey, ')
           ..write('streamUrl: $streamUrl, ')
+          ..write('streamUrlExpiration: $streamUrlExpiration, ')
           ..write('localPath: $localPath, ')
           ..write('imageUrl: $imageUrl, ')
           ..write('year: $year, ')

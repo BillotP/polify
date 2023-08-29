@@ -7,12 +7,13 @@ import 'package:polify/services/database.dart';
 
 class SongToplay {
   late int songId;
+  Song song;
   String? localPath;
   String? streamingUrl;
   String? title;
   String? albumName;
   String? artistName;
-  SongToplay(Song song, {Artist? artist, Album? album}) {
+  SongToplay(this.song, {Artist? artist, Album? album}) {
     songId = song.id;
     title = song.title;
     localPath = song.localPath;
@@ -96,7 +97,9 @@ class PlayerService extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (currentPlaylist.isEmpty) replaceCurrent = true;
     if (replaceCurrent && currentPlaylist.isNotEmpty) currentPlaylist.clear();
     for (var song in songs) {
-      if (song.streamUrl == null && song.localPath == null) {
+      if (song.streamUrl == null && song.localPath == null ||
+          (song.streamUrl != null &&
+              song.streamUrlExpiration!.isBefore(DateTime.now()))) {
         song = await srv.fetchUrl(song);
       }
       currentPlaylist.add(SongToplay(song, artist: artist, album: album));
