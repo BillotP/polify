@@ -60,7 +60,9 @@ Widget albumCardTile(
                 child: Text(
                   album.name,
                   style: const TextStyle(
-                      color: Colors.black, backgroundColor: Colors.white),
+                      fontSize: 16,
+                      color: Colors.white,
+                      backgroundColor: Colors.black),
                   textAlign: TextAlign.center,
                 ),
               ),

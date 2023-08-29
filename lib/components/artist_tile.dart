@@ -41,7 +41,8 @@ Widget artistCardTile(
         Artist artist, void Function(Artist artist, bool now) onArtistPlay) =>
     Card(
       // color: artist.imageUrl != null ?  ColorScheme.fromImageProvider(provider: NetworkImage(artist.imageUrl!)) : null,
-      color: Colors.white,
+      color: Colors.black,
+      shape: RoundedRectangleBorder(side: BorderSide(color: Colors.white)),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         mainAxisSize: MainAxisSize.min,
@@ -53,10 +54,12 @@ Widget artistCardTile(
                 onPressed: () => Get.to(ArtistWidget(artist: artist)),
                 icon: artist.imageUrl != null
                     ? CircleAvatar(
-                        // radius: 100,
-                        backgroundImage: NetworkImage(artist.imageUrl!),
+                        radius: 100,
+                        foregroundImage:
+                            NetworkImage(artist.imageUrl!, scale: 0.5),
                       )
                     : CircleAvatar(
+                        radius: 100,
                         child: Text(
                             "${artist.name.split(" ").first.characters.first} ${artist.name.split(" ").last.characters.first}"),
                       )),
@@ -68,7 +71,7 @@ Widget artistCardTile(
                 child: Text(
                   artist.name,
                   style: const TextStyle(
-                      color: Colors.black, backgroundColor: Colors.white),
+                      color: Colors.white, backgroundColor: Colors.black),
                   textAlign: TextAlign.center,
                 ),
               ),
