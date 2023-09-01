@@ -35,6 +35,15 @@ class _CurrentPlaylistWidgetState extends State<CurrentPlaylistWidget> {
   //     ),
   //   ],
   // ),
+
+  @override
+  void initState() {
+    pls.player.eventStream.listen((event) {
+      setState(() {});
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (pls.currentPlaylist.isEmpty) {
@@ -87,8 +96,10 @@ class _CurrentPlaylistWidgetState extends State<CurrentPlaylistWidget> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Expanded(
-                child: Text(pls.currentPlaylist.elementAt(index).title ??
-                    "Unknow title")),
+                child: Text(
+              pls.currentPlaylist.elementAt(index).title ?? "Unknow title",
+              style: const TextStyle(color: Colors.white),
+            )),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(Duration(
