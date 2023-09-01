@@ -24,6 +24,7 @@ jobs:
           path: build/linux/x64/release
   build-android:
     name: build android apk and app bundle
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v2
