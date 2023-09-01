@@ -105,16 +105,6 @@ class _AlbumWidgetState extends State<AlbumWidget> {
                       ],
                     ),
                   ),
-                  // const Card(
-                  //   child: Row(
-                  //     children: [
-                  //       Text("Genres"),
-                  //       // genres != null
-                  //       //     ? genres!.map((e) => Text(e.genreId)).toList()
-                  //       //     : null
-                  //     ],
-                  //   ),
-                  // ),
                   Card(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -143,7 +133,10 @@ class _AlbumWidgetState extends State<AlbumWidget> {
                     child: ListView.builder(
                       itemCount: songs!.length,
                       itemBuilder: (context, index) => ListTile(
-                          title: Text(songs![index].title),
+                          title: Text(
+                            songs![index].title,
+                            style: const TextStyle(color: Colors.white),
+                          ),
                           leading: songs![index].imageUrl != null
                               ? Image.network(songs![index].imageUrl!)
                               : const Icon(Icons.library_music),
@@ -161,10 +154,6 @@ class _AlbumWidgetState extends State<AlbumWidget> {
                                       [songs![index]],
                                       replaceCurrent: false),
                                   icon: const Icon(Icons.playlist_add)),
-                              // IconButton(
-                              //     onPressed: () =>
-                              //         srv.readId3Tag(songs![index]),
-                              //     icon: const Icon(Icons.info_outline_rounded)),
                               IconButton(
                                   onPressed: () =>
                                       songs![index].localPath != null
