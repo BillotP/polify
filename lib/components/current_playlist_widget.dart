@@ -39,7 +39,7 @@ class _CurrentPlaylistWidgetState extends State<CurrentPlaylistWidget> {
   @override
   void initState() {
     pls.player.eventStream.listen((event) {
-      setState(() {});
+      if (mounted) setState(() {});
     });
     super.initState();
   }
@@ -102,12 +102,15 @@ class _CurrentPlaylistWidgetState extends State<CurrentPlaylistWidget> {
             )),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(Duration(
-                      seconds:
-                          pls.currentPlaylist.elementAt(index).song.duration)
-                  .toString()
-                  .split(".")
-                  .first),
+              child: Text(
+                Duration(
+                        seconds:
+                            pls.currentPlaylist.elementAt(index).song.duration)
+                    .toString()
+                    .split(".")
+                    .first,
+                style: const TextStyle(color: Colors.white),
+              ),
             ),
             pls.playIndex == index
                 ? const Padding(
