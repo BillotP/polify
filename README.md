@@ -1,6 +1,6 @@
 # Polify V2
 
-![ci](https://github.com/billotp/polify/actions/workflows/ci.yml/badge.svg) [![wakatime](https://wakatime.com/badge/user/ed55f0c5-8fd9-4246-9af5-28282782e541/project/5c71355c-1ae8-424b-9c3b-fc8ef0232c29.svg)](https://wakatime.com/badge/user/ed55f0c5-8fd9-4246-9af5-28282782e541/project/5c71355c-1ae8-424b-9c3b-fc8ef0232c29)
+![ci](https://github.com/billotp/polify/actions/workflows/ci.yml/badge.svg) [![wakatime](https://wakatime.com/badge/user/ed55f0c5-8fd9-4246-9af5-28282782e541/project/5c71355c-1ae8-424b-9c3b-fc8ef0232c29.svg)](https://wakatime.com/projects/polify)
 
 A cross-platform S3 based streaming music player for Android and Linux
 
