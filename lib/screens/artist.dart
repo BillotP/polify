@@ -101,7 +101,10 @@ class _ArtistWidgetState extends State<ArtistWidget> {
                       child: ListView.builder(
                           itemCount: snapshot.data!.length,
                           itemBuilder: (context, index) => ListTile(
-                                title: Text(snapshot.data![index].name),
+                                title: Text(
+                                  snapshot.data![index].name,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
                                 onTap: () => Get.to(
                                     AlbumWidget(album: snapshot.data![index])),
                                 leading: snapshot.data![index].imageUrl != null
@@ -148,9 +151,10 @@ class _ArtistWidgetState extends State<ArtistWidget> {
                       child: ListView.builder(
                           itemCount: snapshot.data!.length,
                           itemBuilder: (context, index) => ListTile(
-                                title: Text(snapshot.data![index].title),
-                                // onTap: () => Get.to(
-                                //     AlbumWidget(album: snapshot.data![index])),
+                                title: Text(
+                                  snapshot.data![index].title,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
                                 leading: snapshot.data![index].imageUrl != null
                                     ? Image.network(
                                         snapshot.data![index].imageUrl!)
