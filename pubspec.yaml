@@ -40,7 +40,7 @@ dependencies:
   envied: ^0.3.0+3
   id3tag: ^0.2.0
   download_assets: ^3.1.1
-  audio_service: ^0.18.10
+  audio_service: ^0.18.11
   file_picker: ^5.3.3
 
   # The following adds the Cupertino Icons font to your application.
