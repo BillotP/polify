@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:polify/components/bucket_tile.dart';
 import 'package:polify/components/current_playlist_widget.dart';
 // import 'package:posthog_flutter/posthog_flutter.dart';
+
 import 'package:s3_storage/s3_storage.dart';
 
 import 'env.dart';
@@ -21,11 +23,24 @@ import 'components/player_widget.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Get.put(LocalDB());
-  Get.put(S3Storage(
-      endPoint: Env.s3Endpoint,
-      accessKey: Env.accessKey,
-      secretKey: Env.secretKey,
-      signingType: SigningType.V4));
+  const secureStorage = FlutterSecureStorage();
+  S3Storage store;
+  if (Env.accessKey.isNotEmpty &&
+      Env.secretKey.isNotEmpty &&
+      Env.s3Endpoint.isNotEmpty) {
+    store = S3Storage(
+        endPoint: Env.s3Endpoint,
+        accessKey: Env.accessKey,
+        secretKey: Env.secretKey,
+        signingType: SigningType.V4);
+  } else {
+    var s3Endpoint = await secureStorage.read(key: "s3_endpoint") ?? "";
+    var s3AccessKey = await secureStorage.read(key: "s3_accessKey") ?? "";
+    var s3SecretKey = await secureStorage.read(key: "s3_secretKey") ?? "";
+    store = S3Storage(
+        endPoint: s3Endpoint, accessKey: s3AccessKey, secretKey: s3SecretKey);
+  }
+  Get.put(store);
   Get.put(AudioPlayer());
   Get.put(MusicBucketsService());
   Get.put(PlayerService());
