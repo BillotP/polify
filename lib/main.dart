@@ -427,7 +427,7 @@ class _MyHomePageState extends State<MyHomePage> {
               setState(() {});
             },
             tooltip: 'Shuffle play',
-            child: const Icon(Icons.radio_outlined),
+            child: const Icon(Icons.shuffle_sharp),
           ),
         ),
         Padding(
