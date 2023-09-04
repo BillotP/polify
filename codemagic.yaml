@@ -38,7 +38,8 @@ workflows:
       - name: Flutter build ipa and automatic versioning
         script: |
           export PATH="$PATH":"$HOME/.pub-cache/bin"
-          flutter_distributor package --platform ios --targets=ipa
+          flutter build ios --release --no-codesign
+          # flutter_distributor package --platform ios --targets=ipa
     artifacts:
       - dist/**/*.apk
       - dist/**/*.aab
