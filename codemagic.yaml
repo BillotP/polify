@@ -1,12 +1,13 @@
 workflows:
-  android-workflow:
-    name: Android Workflow
+  android-ios-workflow:
+    name: Android And Ios Workflow
     instance_type: mac_mini_m1
     max_build_duration: 120
     cache:
       cache_paths:
         - $FLUTTER_ROOT/.pub-cache
         - $HOME/.gradle/caches
+        - $HOME/Library/Caches/CocoaPods
     environment:
       # android_signing:
       #   - keystore_reference
@@ -30,9 +31,18 @@ workflows:
         script: |
           export PATH="$PATH":"$HOME/.pub-cache/bin"
           flutter_distributor package --platform android --targets=apk,aab
+      - name: Install pods
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+      - name: Flutter build ipa and automatic versioning
+        script: |
+          flutter build ipa --release
     artifacts:
       - dist/**/*.apk
       - dist/**/*.aab
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
     # publishing:
     #   email:
     #     recipients:
@@ -52,7 +62,6 @@ workflows:
     cache:
       cache_paths:
         - $FLUTTER_ROOT/.pub-cache
-        - $HOME/Library/Caches/CocoaPods
     # integrations:
     #   app_store_connect: codemagic
     environment:
@@ -68,16 +77,7 @@ workflows:
       - name: Get Flutter packages
         script: |
           flutter packages pub get
-      - name: Install pods
-        script: |
-          find . -name "Podfile" -execdir pod install \;
-      - name: Flutter build ipa and automatic versioning
-        script: |
-          flutter build ipa --release
     artifacts:
-      - build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
     # publishing:
     #   # See the following link for details about email publishing - https://docs.codemagic.io/publishing-yaml/distribution/#email
     #   email:
