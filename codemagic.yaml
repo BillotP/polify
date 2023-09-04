@@ -25,6 +25,7 @@ workflows:
           dart pub global activate flutter_distributor
       - name: Codegen
         script: |
+          cp .env.sample .env
           dart run build_runner build --delete-conflicting-outputs
         ignore_failure: true
       - name: Build APK and AAB with Flutter
