@@ -3,6 +3,10 @@ workflows:
     name: Android Workflow
     instance_type: mac_mini_m1
     max_build_duration: 120
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT/.pub-cache
+        - $HOME/.gradle/caches
     environment:
       # android_signing:
       #   - keystore_reference
@@ -45,6 +49,10 @@ workflows:
     name: iOS Workflow
     instance_type: mac_mini_m1
     max_build_duration: 120
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT/.pub-cache
+        - $HOME/Library/Caches/CocoaPods
     # integrations:
     #   app_store_connect: codemagic
     environment:
