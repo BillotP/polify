@@ -37,7 +37,8 @@ workflows:
           find . -name "Podfile" -execdir pod install \;
       - name: Flutter build ipa and automatic versioning
         script: |
-          flutter build ipa --release
+          export PATH="$PATH":"$HOME/.pub-cache/bin"
+          flutter_distributor package --platform ios --targets=ipa
     artifacts:
       - dist/**/*.apk
       - dist/**/*.aab
