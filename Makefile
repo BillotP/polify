@@ -9,9 +9,10 @@ updatebuild:
 	@sed -i 's/\(version:.*\).../version: $(VERSION)+$(BUILD)/' pubspec.yaml
 
 android:
-	@flutter_distributor package --platform android --targets=apk,aab
-	@curl --upload-file ./build/app/outputs/flutter-apk/app-release.apk https://free.keep.sh > link.out
-	@qrencode -o android-apk.png $(shell cat link.out)
+	@make updatebuild
+	@PATH="$$PATH":"$$HOME/.pub-cache/bin" flutter_distributor package --platform android --targets=apk,aab
+	@export F="polify-$(VERSION)+$(BUILD)-android.apk" &&  curl -s --upload-file "./dist/$(VERSION)+$(BUILD)/$$F" "https://transfer.sh/$$F" -o link.out
+	@echo "[INFO] Updating download link qrcode" && qrencode -o android-apk.png -r link.out
 
 deb:
 	@echo "Building dot DEB package for polify v$(VERSION)+$(BUILD)"
@@ -24,6 +25,7 @@ all:
 
 clean:
 	@flutter clean
+	@rm -rf dist link.out android-apk.png || true
 	@dart run build_runner build --delete-conflicting-outputs
 
 
