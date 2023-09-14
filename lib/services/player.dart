@@ -12,6 +12,7 @@ class SongToplay {
   String? streamingUrl;
   String? title;
   String? albumName;
+  Uint8List? albumCover;
   String? artistName;
   SongToplay(this.song, {Artist? artist, Album? album}) {
     songId = song.id;
@@ -20,6 +21,7 @@ class SongToplay {
     streamingUrl = song.streamUrl;
     albumName = album?.name;
     artistName = artist?.name;
+    albumCover = album?.imageBlob;
   }
   Source get source {
     if (localPath != null) {
@@ -42,6 +44,12 @@ class SongToplay {
             id: songitemId,
             album: albumName,
             playable: true,
+            artUri: albumCover != null
+                ? Uri.dataFromBytes(albumCover as List<int>)
+                    .replace(scheme: "content")
+                : null,
+            duration:
+                song.duration > 1 ? Duration(seconds: song.duration) : null,
             title: title ?? "Unknow title",
             artist: artistName)
         : throw Exception("missing source");
@@ -76,10 +84,22 @@ class PlayerService extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Future playAlbum(Album album, {bool replaceCurrent = true}) async {
+    Artist? artist;
     var songs = await (localDb.songs.select()
           ..where((tbl) => tbl.albumId.equals(album.id)))
         .get();
-    await playSongs(songs, replaceCurrent: replaceCurrent, album: album);
+    var artistsID = await (localDb.songArtists.select(distinct: true)
+          ..where((tbl) => tbl.songId.equals(songs.first.id)))
+        .getSingleOrNull();
+    if (artistsID != null) {
+      artist = await (localDb.artists.select(distinct: true)
+            ..where(
+              (tbl) => tbl.id.equals(artistsID.artistId),
+            ))
+          .getSingleOrNull();
+    }
+    await playSongs(songs,
+        replaceCurrent: replaceCurrent, album: album, artist: artist);
   }
 
   Future playArtist(Artist artist, {bool replaceCurrent = true}) async {
@@ -101,6 +121,23 @@ class PlayerService extends BaseAudioHandler with QueueHandler, SeekHandler {
           (song.streamUrl != null &&
               song.streamUrlExpiration!.isBefore(DateTime.now()))) {
         song = await srv.fetchUrl(song);
+        if (album == null && song.albumId != null) {
+          album = await (localDb.albums.select(distinct: true)
+                ..where((a) => a.id.equals(song.albumId!)))
+              .getSingleOrNull();
+        }
+        if (artist == null) {
+          var artistsID = await (localDb.songArtists.select(distinct: true)
+                ..where((tbl) => tbl.songId.equals(song.id)))
+              .getSingleOrNull();
+          if (artistsID != null) {
+            artist = await (localDb.artists.select(distinct: true)
+                  ..where(
+                    (tbl) => tbl.id.equals(artistsID.artistId),
+                  ))
+                .getSingleOrNull();
+          }
+        }
       }
       currentPlaylist.add(SongToplay(song, artist: artist, album: album));
     }
