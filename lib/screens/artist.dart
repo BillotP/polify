@@ -66,7 +66,10 @@ class _ArtistWidgetState extends State<ArtistWidget> {
         centerTitle: false,
         leading: IconButton(
             onPressed: () => Navigator.pop(context, "hello"),
-            icon: const Icon(Icons.backspace)),
+            icon: const Icon(
+              Icons.backspace,
+              color: Colors.white,
+            )),
       ),
       body: Center(
         child: Column(
