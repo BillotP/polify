@@ -69,7 +69,10 @@ class _AlbumWidgetState extends State<AlbumWidget> {
         centerTitle: true,
         leading: IconButton(
             onPressed: () => Navigator.pop(context, "hello"),
-            icon: const Icon(Icons.backspace)),
+            icon: const Icon(
+              Icons.backspace,
+              color: Colors.white,
+            )),
       ),
       body: Center(
         child: Column(
