@@ -11,6 +11,8 @@
 migrate_working_dir/
 android-apk.png
 link.out
+db.sqlite
+polify
 
 # IntelliJ related
 *.iml
