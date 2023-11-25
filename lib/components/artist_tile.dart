@@ -42,7 +42,8 @@ Widget artistCardTile(
     Card(
       // color: artist.imageUrl != null ?  ColorScheme.fromImageProvider(provider: NetworkImage(artist.imageUrl!)) : null,
       color: Colors.black,
-      shape: RoundedRectangleBorder(side: BorderSide(color: Colors.white)),
+      shape:
+          const RoundedRectangleBorder(side: BorderSide(color: Colors.white)),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         mainAxisSize: MainAxisSize.min,
