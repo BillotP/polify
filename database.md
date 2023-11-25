@@ -112,6 +112,8 @@ A Music Artist eg Stan Getz, Rick James, Freeze Corleone ...
 
 ### songs-IsSingle : boolean
 
+### songs-IsFavorite : boolean
+
 ### songs-AlbumId : integer
 
 ### songs-LabelId : integer
