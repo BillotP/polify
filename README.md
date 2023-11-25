@@ -22,6 +22,10 @@ A cross-platform S3 based streaming music player for Android and Linux
 
 - [x] Play Songs, Albums or Artists on tap
 
+- [x] Play Now with Random songs
+
+- [ ] Save songs to playlist
+
 ## :hammer: Development
 
 - Clone this repository on your linux based os with an up-to-date flutter sdk installed.
@@ -36,15 +40,21 @@ ACCESS_KEY=youracceskey
 SECRET_KEY=yoursecretkey
 ```
 
-- Run `dart run build_runner build --delete-conflicting-output` to generate database and dotenv helpers class.
+- Run `dart run build_runner build -d` to generate database and dotenv helpers class.
 
-- Connect your Android phone with AndroidDebugBridge activated\*
+- Connect your Android phone with AndroidDebugBridge activated\* then run `flutter run -d android`
 
-- Run `flutter run -d android` or `flutter run -d linux`
+- Or `flutter run -d linux` to start the Linux Desktop App
 
 - Enjoy !
 
 \*Optional, only for Android version
+
+### Build
+
+- Install `flutter_distributor` with `dart pub global activate flutter_distributor`
+
+- Run `make`
 
 ## :book: Documentation
 
