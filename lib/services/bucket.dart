@@ -38,7 +38,8 @@ class MusicBucketsService {
               musicFolderPrefix: d.Value(musicPrefix))),
           onConflict: d.DoNothing(target: [localDb.musicBuckets.name]));
     } on Exception catch (e) {
-      Get.snackbar("Something bad happened", e.toString());
+      Get.snackbar("Something bad happened", e.toString(),
+          backgroundColor: Colors.black, colorText: Colors.white);
     }
   }
 
@@ -254,9 +255,10 @@ class MusicBucketsService {
         } else {
           appFolder = await getDownloadsDirectory();
         }
+        appFolder ??= Directory.current;
 
         final fPath =
-            p.join(appFolder!.path, "polify", song.bucketKey.split('/').last);
+            p.join(appFolder.path, "polify", song.bucketKey.split('/').last);
         // print("Exist $fPath ");
         if (!File(fPath).existsSync()) {
           // print("Downloading ...");
@@ -304,10 +306,11 @@ class MusicBucketsService {
     return null;
   }
 
-  Future loadJackets() async {
+  Future loadJackets(int limit) async {
     var elem = 0;
     final albums = await (localDb.albums.select()
-          ..where((tbl) => tbl.imageBlob.isNull()))
+          ..where((tbl) => tbl.imageBlob.isNull())
+          ..limit(limit))
         .get();
     for (var element in albums) {
       elem++;
@@ -341,10 +344,11 @@ class MusicBucketsService {
     }
   }
 
-  Future loadArtists() async {
+  Future loadArtists(int limit) async {
     var client = http.Client();
     final artists = await (localDb.artists.select()
-          ..where((tbl) => tbl.imageUrl.isNull()))
+          ..where((tbl) => tbl.imageUrl.isNull())
+          ..limit(limit))
         .get();
     var cnt = 0;
     // print("Found ${artists.length} objects");
