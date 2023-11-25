@@ -5,15 +5,15 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:drift/drift.dart' as d;
 import 'package:flutter/material.dart';
-import 'package:polify/components/bucket_tile.dart';
-import 'package:polify/components/current_playlist_widget.dart';
-// import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:s3_storage/s3_storage.dart';
 
 import 'env.dart';
 import 'services/database.dart';
 import 'services/bucket.dart';
 import 'services/player.dart';
+import 'screens/settings.dart';
+import 'components/bucket_tile.dart';
+import 'components/current_playlist_widget.dart';
 import 'components/artist_tile.dart';
 import 'components/album_tile.dart';
 import 'components/player_widget.dart';
@@ -37,6 +37,7 @@ Future<void> main() async {
         androidNotificationChannelName: 'Audio playback',
         androidNotificationOngoing: true,
         androidStopForegroundOnPause: true,
+        preloadArtwork: true,
         notificationColor: Colors.black),
   );
   runApp(const MyApp());
@@ -49,14 +50,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'PolifyV2',
+      title: 'Polify',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
           useMaterial3: true,
           // iconTheme: const IconThemeData(color: Colors.orangeAccent),
           textTheme: Typography.whiteCupertino,
           scaffoldBackgroundColor: Colors.black),
-      home: const MyHomePage(title: 'PolifyV2'),
+      home: const MyHomePage(title: 'Polify'),
     );
   }
 }
@@ -81,14 +82,15 @@ class _MyHomePageState extends State<MyHomePage> {
   Stream<List<Album>>? albums;
   Stream<List<Song>>? songs;
 
-  bool _loading = false;
   int _selectedIndex = 0;
-  bool _crawlMetarunning = false;
+  // bool _crawlMetarunning = false;
   final Map<String, bool> _bucketCrawling = {};
+  final Map<String, bool> _filterStates = {
+    "favoritesSongs": false,
+  };
 
-  List<Widget> _widgets(Stream<List<MusicBucket>>? buckets,
-          Stream<List<Artist>>? artists, Stream<List<Album>>? albums) =>
-      [
+  List<Widget> _widgets() => [
+        // Bucket Stream / home page TODO(main)
         Expanded(
           child: StreamBuilder(
             stream: buckets,
@@ -100,13 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   snapshot.connectionState == ConnectionState.done) {
                 if (snapshot.hasError) {
                   return Text('Error ${snapshot.data.toString()}');
-                } else if (snapshot.hasData) {
-                  if (snapshot.data!.isEmpty) {
-                    return const Center(
-                      child:
-                          Text("Click on refresh button above to list buckets"),
-                    );
-                  }
+                } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                   return GridView.builder(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: Platform.isAndroid ? 1 : 2),
@@ -120,18 +116,17 @@ class _MyHomePageState extends State<MyHomePage> {
                             _bucketCrawling[snapshot.data![index].name]!,
                         onRefreshBucketContent),
                   );
-                } else {
-                  return const Center(
-                    child:
-                        Text("Click on refresh button above to list buckets"),
-                  );
                 }
+                return const Center(
+                  child: Text("Click on refresh button above to list buckets"),
+                );
               } else {
                 return Text('State: ${snapshot.connectionState}');
               }
             },
           ),
         ),
+        // Artists Stream
         Expanded(
           child: StreamBuilder(
             stream: artists,
@@ -143,51 +138,79 @@ class _MyHomePageState extends State<MyHomePage> {
                   snapshot.connectionState == ConnectionState.done) {
                 if (snapshot.hasError) {
                   return Text('Error ${snapshot.data.toString()}');
-                } else if (snapshot.hasData) {
-                  if (snapshot.data!.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Center(
-                            child: Text(
-                              "No artists found, click on refresh button for a bucket in 'Buckets' page first.",
-                              textScaleFactor: 2,
-                            ),
-                          ),
-                          Expanded(child: Container()),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 15),
-                            child: Icon(
-                              Icons.arrow_downward_sharp,
-                              size: 30,
-                              color: Colors.white,
-                            ),
-                          )
-                        ],
-                      ),
-                    );
-                  }
-                  return GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: Platform.isAndroid ? 2 : 3),
-                    clipBehavior: Clip.antiAlias,
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) =>
-                        artistCardTile(snapshot.data![index], onArtistPlay),
-                  );
-                } else {
+                }
+                if (!snapshot.hasData) {
                   return const Text('Empty data');
                 }
-              } else {
-                return const Center(
-                    child: Text(
-                        'Click on a bucket card refresh symbol to crawl for songs'));
+
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Padding(padding: EdgeInsets.all(8)),
+                        const Icon(
+                          Icons.search,
+                          color: Colors.white,
+                        ),
+                        Expanded(
+                            child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: SearchBar(
+                            key: const Key("artists_stream_search"),
+                            onSubmitted: (String s) => setState(() {
+                              artists = s.length > 2
+                                  ? (db.artists.select()
+                                        ..where((tbl) => tbl.name.contains(s)))
+                                      .watch()
+                                  : (db.artists.select()
+                                        ..orderBy([
+                                          (u) => d.OrderingTerm.asc(u.name)
+                                        ]))
+                                      .watch();
+                            }),
+                          ),
+                        )),
+                      ],
+                    ),
+                    Expanded(
+                        child: GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: Platform.isAndroid ? 2 : 3),
+                      clipBehavior: Clip.antiAlias,
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) =>
+                          artistCardTile(snapshot.data![index], onArtistPlay),
+                    )),
+                  ],
+                );
               }
+
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Center(
+                      child: Text(
+                        "No artists found, click on refresh button for a bucket in 'Buckets' page first.",
+                        textScaler: TextScaler.linear(2),
+                      ),
+                    ),
+                    Expanded(child: Container()),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 15),
+                      child: Icon(
+                        Icons.arrow_downward_sharp,
+                        size: 30,
+                        color: Colors.white,
+                      ),
+                    )
+                  ],
+                ),
+              );
             },
           ),
         ),
@@ -203,137 +226,212 @@ class _MyHomePageState extends State<MyHomePage> {
                 if (snapshot.hasError) {
                   return Text('Error ${snapshot.data.toString()}');
                 } else if (snapshot.hasData) {
-                  if (snapshot.data!.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  return Column(
+                    children: [
+                      Row(
                         children: [
-                          const Center(
-                            child: Text(
-                              "No albums found, click on refresh button for a bucket in 'Buckets' page first.",
-                              textScaleFactor: 2,
-                            ),
+                          const Padding(padding: EdgeInsets.all(8)),
+                          const Icon(
+                            Icons.search,
+                            color: Colors.white,
                           ),
-                          Expanded(child: Container()),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 15),
-                            child: Icon(
-                              Icons.arrow_downward_sharp,
-                              size: 30,
-                              color: Colors.white,
+                          Expanded(
+                              child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: SearchBar(
+                              key: const Key("albums_stream_search"),
+                              onSubmitted: (String s) => setState(() {
+                                albums = s.length > 2
+                                    ? (db.albums.select()
+                                          ..where(
+                                              (tbl) => tbl.name.contains(s)))
+                                        .watch()
+                                    : (db.albums.select()
+                                          ..orderBy([
+                                            (u) => d.OrderingTerm.asc(u.name)
+                                          ]))
+                                        .watch();
+                              }),
                             ),
-                          )
+                          )),
                         ],
                       ),
-                    );
-                  }
-                  return GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: Platform.isAndroid ? 2 : 3),
-                    clipBehavior: Clip.antiAlias,
-                    shrinkWrap: true,
-                    scrollDirection: Axis.vertical,
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return albumCardTile(snapshot.data![index], onAlbumPlay);
-                    },
+                      Expanded(
+                        child: snapshot.data!.isNotEmpty
+                            ? GridView.builder(
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount:
+                                            Platform.isAndroid ? 2 : 3),
+                                clipBehavior: Clip.antiAlias,
+                                shrinkWrap: true,
+                                scrollDirection: Axis.vertical,
+                                itemCount: snapshot.data!.length,
+                                itemBuilder: (context, index) => albumCardTile(
+                                    snapshot.data![index], onAlbumPlay),
+                              )
+                            : Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Center(
+                                      child: Text(
+                                        "No albums found, click on refresh button for a bucket in 'Buckets' page first.",
+                                        textScaler: TextScaler.linear(2),
+                                      ),
+                                    ),
+                                    Expanded(child: Container()),
+                                    const Padding(
+                                      padding: EdgeInsets.only(left: 15),
+                                      child: Icon(
+                                        Icons.arrow_downward_sharp,
+                                        size: 30,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                      ),
+                    ],
                   );
-                } else {
-                  return const Text('Empty data');
                 }
-              } else {
-                return const Center(
-                    child: Text(
-                        'Click on a bucket card refresh symbol to crawl for songs'));
+                return const Text('Empty data');
               }
+              return const Center(
+                  child: Text(
+                      'Click on a bucket card refresh symbol to crawl for songs'));
             },
           ),
         ),
         Expanded(
             child: StreamBuilder(
-          stream: songs,
-          key: const Key("songs_stream"),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.connectionState == ConnectionState.active ||
-                snapshot.connectionState == ConnectionState.done) {
-              if (snapshot.hasError) {
-                return Text('Error ${snapshot.data.toString()}');
-              } else if (snapshot.hasData) {
-                if (snapshot.data!.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Center(
+                stream: songs,
+                key: const Key("songs_stream"),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.connectionState ==
+                          ConnectionState.active ||
+                      snapshot.connectionState == ConnectionState.done) {
+                    if (snapshot.hasError) {
+                      return Text('Error ${snapshot.data.toString()}');
+                    }
+                    if (!snapshot.hasData) {
+                      return const Center(
                           child: Text(
-                            "No songs found, click on refresh button for a bucket in 'Buckets' page first.",
-                            textScaleFactor: 2,
+                              'Click on a bucket card refresh symbol to crawl for songs'));
+                    }
+
+                    return Column(
+                      children: [
+                        Row(
+                          children: [
+                            const Padding(padding: EdgeInsets.all(8)),
+                            const Icon(
+                              Icons.search,
+                              color: Colors.white,
+                            ),
+                            Expanded(
+                                child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: SearchBar(
+                                key: const Key("songs_stream_search"),
+                                onSubmitted: (String s) => setState(() {
+                                  songs = s.length > 2
+                                      ? (db.songs.select()
+                                            ..where(
+                                                (tbl) => tbl.title.contains(s)))
+                                          .watch()
+                                      : (db.songs.all()).watch();
+                                }),
+                              ),
+                            )),
+                          ],
+                        ),
+                        ListTile(
+                          textColor: Colors.white,
+                          title: const Row(
+                            children: [
+                              Icon(
+                                Icons.favorite,
+                                color: Colors.red,
+                              ),
+                              Padding(padding: EdgeInsets.all(10)),
+                              Text("favorites")
+                            ],
+                          ),
+                          dense: false,
+                          trailing: IconButton(
+                              iconSize: 40,
+                              icon: Icon(_filterStates["favoritesSongs"]!
+                                  ? Icons.toggle_on
+                                  : Icons.toggle_off),
+                              color: _filterStates["favoritesSongs"]!
+                                  ? Colors.white
+                                  : null,
+                              onPressed: () async {
+                                _filterStates["favoritesSongs"] =
+                                    !_filterStates["favoritesSongs"]!;
+                                setState(() {
+                                  songs = _filterStates["favoritesSongs"]!
+                                      ? (db.songs.select()
+                                            ..where((tbl) =>
+                                                tbl.isFavorite.equals(true)))
+                                          .watch()
+                                      : (db.songs.all()).watch();
+                                });
+                              }),
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+                            clipBehavior: Clip.antiAlias,
+                            shrinkWrap: true,
+                            scrollDirection: Axis.vertical,
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              return ListTile(
+                                title: Text(
+                                  snapshot.data![index].title
+                                      .replaceAll(
+                                          RegExp(r'.(?:wav|mp3|flac)'), "")
+                                      .replaceAll(RegExp(r'(.*?)-(\d+)|-'), "")
+                                      .replaceAll(RegExp(r'^F?[0-9][0-9]'), "")
+                                      .replaceAll(RegExp(r'^F?[0-9]'), ""),
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                leading: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                        onPressed: () => onSongPlay(
+                                            snapshot.data![index], true),
+                                        icon:
+                                            const Icon(Icons.play_arrow_sharp)),
+                                    IconButton(
+                                        onPressed: () => onSongPlay(
+                                            snapshot.data![index], false),
+                                        icon: const Icon(
+                                            Icons.playlist_add_outlined))
+                                  ],
+                                ),
+                              );
+                            },
                           ),
                         ),
-                        Expanded(child: Container()),
-                        const Padding(
-                          padding: EdgeInsets.only(left: 15),
-                          child: Icon(
-                            Icons.arrow_downward_sharp,
-                            size: 30,
-                            color: Colors.white,
-                          ),
-                        )
                       ],
-                    ),
-                  );
-                }
-                return ListView.builder(
-                  clipBehavior: Clip.antiAlias,
-                  shrinkWrap: true,
-                  // controller: _songPageScrollcontroller,
-                  scrollDirection: Axis.vertical,
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(
-                        snapshot.data![index].title,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      leading: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                              onPressed: () =>
-                                  onSongPlay(snapshot.data![index], true),
-                              icon: const Icon(Icons.play_arrow_sharp)),
-                          IconButton(
-                              onPressed: () =>
-                                  onSongPlay(snapshot.data![index], false),
-                              icon: const Icon(Icons.playlist_add_outlined))
-                        ],
-                      ),
                     );
-                  },
-                );
-              } else {
-                return const Text('Empty data');
-              }
-            } else {
-              return const Center(
-                  child: Text(
-                      'Click on a bucket card refresh symbol to crawl for songs'));
-            }
-          },
-        )),
+                  }
+                  return const Text('Empty data');
+                })),
         const Expanded(child: CurrentPlaylistWidget())
       ];
 
   @override
   void initState() {
     super.initState();
-    // TODO(main): Paginate those results
     buckets = (db.musicBuckets.select()
           ..orderBy([(u) => d.OrderingTerm.asc(u.name)]))
         .watch();
@@ -380,18 +478,6 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {})
       };
 
-  void onRefreshBucketList() async => {
-        _loading
-            ? ()
-            : setState(() {
-                _loading = true;
-              }),
-        await _init(),
-        setState(() {
-          _loading = false;
-        })
-      };
-
   void onRefreshBucketContent(MusicBucket bucket) async =>
       _bucketCrawling[bucket.name] != null &&
               _bucketCrawling[bucket.name]! == false
@@ -431,58 +517,14 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8),
           child: FloatingActionButton(
-            mini: true,
-            backgroundColor: Colors.white,
-            heroTag: "refreshMode",
-            onPressed: _crawlMetarunning
-                ? null
-                : () async => {
-                      setState(() {
-                        _crawlMetarunning = true;
-                      }),
-                      await srv.loadJackets(),
-                      await srv.loadArtists(),
-                      setState(() {
-                        _crawlMetarunning = false;
-                      })
-                    },
-            tooltip: 'Refresh Metadatas',
-            child: _crawlMetarunning
-                ? const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator(
-                      strokeWidth: 3.0,
-                    ),
-                  )
-                : const Icon(Icons.rule_folder_sharp),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: FloatingActionButton(
-            mini: true,
-            backgroundColor: Colors.white,
-            heroTag: "refreshBucket",
-            onPressed: () => onRefreshBucketList(),
-            tooltip: 'Refresh Bucket List',
-            child: _loading
-                ? const CircularProgressIndicator()
-                : const Icon(Icons.refresh),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: FloatingActionButton(
-            mini: true,
-            backgroundColor: Colors.white,
-            heroTag: "cleanAll",
-            tooltip: 'Clear All',
-            child: const Icon(Icons.delete_forever_outlined),
-            onPressed: () => deleteEverything(db),
-          ),
-        ),
+              mini: true,
+              backgroundColor: Colors.white,
+              heroTag: "settings",
+              child: const Icon(Icons.settings),
+              onPressed: () => Get.to(SettingsWidget())),
+        )
       ],
       title: Text(
         widget.title,
@@ -523,14 +565,11 @@ class _MyHomePageState extends State<MyHomePage> {
               label: "Playlist",
             ),
           ]),
-      // drawer: player.currentPlaylist.isNotEmpty
-      //     ? const CurrentPlaylistWidget()
-      //     : null,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          _widgets(buckets, artists, albums).elementAt(_selectedIndex),
+          _widgets()[_selectedIndex],
           player.currentPlaylist.isEmpty ? Container() : PlayerWidget()
         ],
       ),
