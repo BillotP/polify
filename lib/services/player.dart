@@ -10,17 +10,21 @@ class SongToplay {
   Song song;
   String? localPath;
   String? streamingUrl;
-  String? title;
-  String? albumName;
+  late String title;
+  late String albumName;
   Uint8List? albumCover;
-  String? artistName;
+  late String artistName;
   SongToplay(this.song, {Artist? artist, Album? album}) {
     songId = song.id;
-    title = song.title;
+    title = song.title
+        .replaceAll(RegExp('.(?:wav|mp3|flac)'), "")
+        .replaceAll(RegExp(r'\d+-\d\d'), "")
+        .replaceAll(RegExp(r'^F?[0-9][0-9]'), "")
+        .replaceAll(RegExp(r'^F?[0-9]'), "");
     localPath = song.localPath;
     streamingUrl = song.streamUrl;
-    albumName = album?.name;
-    artistName = artist?.name;
+    albumName = album?.name ?? "unknow album";
+    artistName = artist?.name ?? "unknow artist";
     albumCover = album?.imageBlob;
   }
   Source get source {
@@ -50,7 +54,7 @@ class SongToplay {
                 : null,
             duration:
                 song.duration > 1 ? Duration(seconds: song.duration) : null,
-            title: title ?? "Unknow title",
+            title: title,
             artist: artistName)
         : throw Exception("missing source");
   }
@@ -116,22 +120,28 @@ class PlayerService extends BaseAudioHandler with QueueHandler, SeekHandler {
       {bool replaceCurrent = true, Artist? artist, Album? album}) async {
     if (currentPlaylist.isEmpty) replaceCurrent = true;
     if (replaceCurrent && currentPlaylist.isNotEmpty) currentPlaylist.clear();
+
     for (var song in songs) {
+      Album? songAlbum = album;
+      Artist? songArtist = artist;
       if (song.streamUrl == null && song.localPath == null ||
           (song.streamUrl != null &&
               song.streamUrlExpiration!.isBefore(DateTime.now()))) {
         song = await srv.fetchUrl(song);
+
         if (album == null && song.albumId != null) {
-          album = await (localDb.albums.select(distinct: true)
+          songAlbum = await (localDb.albums.select(distinct: true)
                 ..where((a) => a.id.equals(song.albumId!)))
               .getSingleOrNull();
         }
+
         if (artist == null) {
           var artistsID = await (localDb.songArtists.select(distinct: true)
                 ..where((tbl) => tbl.songId.equals(song.id)))
               .getSingleOrNull();
+
           if (artistsID != null) {
-            artist = await (localDb.artists.select(distinct: true)
+            songArtist = await (localDb.artists.select(distinct: true)
                   ..where(
                     (tbl) => tbl.id.equals(artistsID.artistId),
                   ))
@@ -139,7 +149,8 @@ class PlayerService extends BaseAudioHandler with QueueHandler, SeekHandler {
           }
         }
       }
-      currentPlaylist.add(SongToplay(song, artist: artist, album: album));
+      currentPlaylist
+          .add(SongToplay(song, artist: songArtist, album: songAlbum));
     }
     if (currentPlaylist.isEmpty) {
       Get.snackbar("Player", "No songs in playlist");
