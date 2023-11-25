@@ -116,13 +116,16 @@ class Songs extends Table {
   TextColumn get streamUrl => text().nullable().withLength(min: 1)();
   DateTimeColumn get streamUrlExpiration => dateTime().nullable()();
   TextColumn get localPath => text().nullable().nullable()();
+
   TextColumn get imageUrl => text().nullable().withLength(min: 1)();
   DateTimeColumn get year =>
       dateTime().check(year.isBiggerThan(Constant(DateTime(1000))))();
-  BoolColumn get isSingle => boolean().withDefault(const Constant(false))();
   IntColumn get duration =>
       integer().check(duration.isBiggerOrEqual(const Constant(1)))();
   IntColumn get albumId => integer().nullable().references(Albums, #id)();
+
+  BoolColumn get isSingle => boolean().withDefault(const Constant(false))();
+  BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
 }
 
 class SongGenres extends Table {
@@ -193,10 +196,17 @@ class LocalDB extends _$LocalDB {
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final fPath = p.join(dbFolder.path, 'db.sqlite');
-    final file = File(fPath);
-    return NativeDatabase.createInBackground(file);
+    try {
+      final dbFolder = await getApplicationDocumentsDirectory();
+      final fPath = p.join(dbFolder.path, 'db.sqlite');
+      final file = File(fPath);
+      return NativeDatabase.createInBackground(file);
+    } on Exception catch (e) {
+      print(e);
+      // rethrow;
+      final file = File('db.sqlite');
+      return NativeDatabase.createInBackground(file);
+    }
   });
 }
 
