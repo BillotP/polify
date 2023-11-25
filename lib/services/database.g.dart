@@ -47,9 +47,10 @@ class $MusicBucketsTable extends MusicBuckets
   @override
   List<GeneratedColumn> get $columns => [id, name, endpoint, musicFolderPrefix];
   @override
-  String get aliasedName => _alias ?? 'music_buckets';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'music_buckets';
+  String get actualTableName => $name;
+  static const String $name = 'music_buckets';
   @override
   VerificationContext validateIntegrity(Insertable<MusicBucket> instance,
       {bool isInserting = false}) {
@@ -295,9 +296,10 @@ class $GenresTable extends Genres with TableInfo<$GenresTable, Genre> {
   @override
   List<GeneratedColumn> get $columns => [id, name];
   @override
-  String get aliasedName => _alias ?? 'genres';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'genres';
+  String get actualTableName => $name;
+  static const String $name = 'genres';
   @override
   VerificationContext validateIntegrity(Insertable<Genre> instance,
       {bool isInserting = false}) {
@@ -478,9 +480,10 @@ class $LabelsTable extends Labels with TableInfo<$LabelsTable, Label> {
   @override
   List<GeneratedColumn> get $columns => [id, name, imageUrl];
   @override
-  String get aliasedName => _alias ?? 'labels';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'labels';
+  String get actualTableName => $name;
+  static const String $name = 'labels';
   @override
   VerificationContext validateIntegrity(Insertable<Label> instance,
       {bool isInserting = false}) {
@@ -693,9 +696,10 @@ class $LabelGenresTable extends LabelGenres
   @override
   List<GeneratedColumn> get $columns => [id, labelId, genreId];
   @override
-  String get aliasedName => _alias ?? 'label_genres';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'label_genres';
+  String get actualTableName => $name;
+  static const String $name = 'label_genres';
   @override
   VerificationContext validateIntegrity(Insertable<LabelGenre> instance,
       {bool isInserting = false}) {
@@ -932,9 +936,10 @@ class $GroupsTable extends Groups with TableInfo<$GroupsTable, Group> {
   @override
   List<GeneratedColumn> get $columns => [id, bucketPrefix, name, imageUrl];
   @override
-  String get aliasedName => _alias ?? 'groups';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'groups';
+  String get actualTableName => $name;
+  static const String $name = 'groups';
   @override
   VerificationContext validateIntegrity(Insertable<Group> instance,
       {bool isInserting = false}) {
@@ -1180,9 +1185,10 @@ class $GroupGenresTable extends GroupGenres
   @override
   List<GeneratedColumn> get $columns => [id, groupId, genreId];
   @override
-  String get aliasedName => _alias ?? 'group_genres';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'group_genres';
+  String get actualTableName => $name;
+  static const String $name = 'group_genres';
   @override
   VerificationContext validateIntegrity(Insertable<GroupGenre> instance,
       {bool isInserting = false}) {
@@ -1407,9 +1413,10 @@ class $GroupLabelsTable extends GroupLabels
   @override
   List<GeneratedColumn> get $columns => [id, groupId, labelId];
   @override
-  String get aliasedName => _alias ?? 'group_labels';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'group_labels';
+  String get actualTableName => $name;
+  static const String $name = 'group_labels';
   @override
   VerificationContext validateIntegrity(Insertable<GroupLabel> instance,
       {bool isInserting = false}) {
@@ -1654,9 +1661,10 @@ class $ArtistsTable extends Artists with TableInfo<$ArtistsTable, Artist> {
   List<GeneratedColumn> get $columns =>
       [id, bucketPrefix, name, imageUrl, description];
   @override
-  String get aliasedName => _alias ?? 'artists';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'artists';
+  String get actualTableName => $name;
+  static const String $name = 'artists';
   @override
   VerificationContext validateIntegrity(Insertable<Artist> instance,
       {bool isInserting = false}) {
@@ -1933,9 +1941,10 @@ class $ArtistGenresTable extends ArtistGenres
   @override
   List<GeneratedColumn> get $columns => [artistId, genreId];
   @override
-  String get aliasedName => _alias ?? 'artist_genres';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'artist_genres';
+  String get actualTableName => $name;
+  static const String $name = 'artist_genres';
   @override
   VerificationContext validateIntegrity(Insertable<ArtistGenre> instance,
       {bool isInserting = false}) {
@@ -2123,9 +2132,10 @@ class $ArtistLabelsTable extends ArtistLabels
   @override
   List<GeneratedColumn> get $columns => [artistId, genreId];
   @override
-  String get aliasedName => _alias ?? 'artist_labels';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'artist_labels';
+  String get actualTableName => $name;
+  static const String $name = 'artist_labels';
   @override
   VerificationContext validateIntegrity(Insertable<ArtistLabel> instance,
       {bool isInserting = false}) {
@@ -2313,9 +2323,10 @@ class $ArtistGroupsTable extends ArtistGroups
   @override
   List<GeneratedColumn> get $columns => [artistId, groupId];
   @override
-  String get aliasedName => _alias ?? 'artist_groups';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'artist_groups';
+  String get actualTableName => $name;
+  static const String $name = 'artist_groups';
   @override
   VerificationContext validateIntegrity(Insertable<ArtistGroup> instance,
       {bool isInserting = false}) {
@@ -2537,9 +2548,10 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
   List<GeneratedColumn> get $columns =>
       [id, name, bucketPrefix, imageUrl, imageBlob, year];
   @override
-  String get aliasedName => _alias ?? 'albums';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'albums';
+  String get actualTableName => $name;
+  static const String $name = 'albums';
   @override
   VerificationContext validateIntegrity(Insertable<Album> instance,
       {bool isInserting = false}) {
@@ -2844,9 +2856,10 @@ class $AlbumGenresTable extends AlbumGenres
   @override
   List<GeneratedColumn> get $columns => [albumId, genreId];
   @override
-  String get aliasedName => _alias ?? 'album_genres';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'album_genres';
+  String get actualTableName => $name;
+  static const String $name = 'album_genres';
   @override
   VerificationContext validateIntegrity(Insertable<AlbumGenre> instance,
       {bool isInserting = false}) {
@@ -3034,9 +3047,10 @@ class $AlbumLabelsTable extends AlbumLabels
   @override
   List<GeneratedColumn> get $columns => [albumId, genreId];
   @override
-  String get aliasedName => _alias ?? 'album_labels';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'album_labels';
+  String get actualTableName => $name;
+  static const String $name = 'album_labels';
   @override
   VerificationContext validateIntegrity(Insertable<AlbumLabel> instance,
       {bool isInserting = false}) {
@@ -3234,9 +3248,10 @@ class $AlbumArtistsTable extends AlbumArtists
   @override
   List<GeneratedColumn> get $columns => [id, albumId, artistId];
   @override
-  String get aliasedName => _alias ?? 'album_artists';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'album_artists';
+  String get actualTableName => $name;
+  static const String $name = 'album_artists';
   @override
   VerificationContext validateIntegrity(Insertable<AlbumArtist> instance,
       {bool isInserting = false}) {
@@ -3510,16 +3525,6 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
       check: () => year.isBiggerThan(Constant(DateTime(1000))),
       type: DriftSqlType.dateTime,
       requiredDuringInsert: true);
-  static const VerificationMeta _isSingleMeta =
-      const VerificationMeta('isSingle');
-  @override
-  late final GeneratedColumn<bool> isSingle = GeneratedColumn<bool>(
-      'is_single', aliasedName, false,
-      type: DriftSqlType.bool,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('CHECK ("is_single" IN (0, 1))'),
-      defaultValue: const Constant(false));
   static const VerificationMeta _durationMeta =
       const VerificationMeta('duration');
   @override
@@ -3537,6 +3542,26 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
       requiredDuringInsert: false,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('REFERENCES albums (id)'));
+  static const VerificationMeta _isSingleMeta =
+      const VerificationMeta('isSingle');
+  @override
+  late final GeneratedColumn<bool> isSingle = GeneratedColumn<bool>(
+      'is_single', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_single" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _isFavoriteMeta =
+      const VerificationMeta('isFavorite');
+  @override
+  late final GeneratedColumn<bool> isFavorite = GeneratedColumn<bool>(
+      'is_favorite', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_favorite" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -3548,14 +3573,16 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
         localPath,
         imageUrl,
         year,
-        isSingle,
         duration,
-        albumId
+        albumId,
+        isSingle,
+        isFavorite
       ];
   @override
-  String get aliasedName => _alias ?? 'songs';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'songs';
+  String get actualTableName => $name;
+  static const String $name = 'songs';
   @override
   VerificationContext validateIntegrity(Insertable<Song> instance,
       {bool isInserting = false}) {
@@ -3608,10 +3635,6 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
     } else if (isInserting) {
       context.missing(_yearMeta);
     }
-    if (data.containsKey('is_single')) {
-      context.handle(_isSingleMeta,
-          isSingle.isAcceptableOrUnknown(data['is_single']!, _isSingleMeta));
-    }
     if (data.containsKey('duration')) {
       context.handle(_durationMeta,
           duration.isAcceptableOrUnknown(data['duration']!, _durationMeta));
@@ -3621,6 +3644,16 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
     if (data.containsKey('album_id')) {
       context.handle(_albumIdMeta,
           albumId.isAcceptableOrUnknown(data['album_id']!, _albumIdMeta));
+    }
+    if (data.containsKey('is_single')) {
+      context.handle(_isSingleMeta,
+          isSingle.isAcceptableOrUnknown(data['is_single']!, _isSingleMeta));
+    }
+    if (data.containsKey('is_favorite')) {
+      context.handle(
+          _isFavoriteMeta,
+          isFavorite.isAcceptableOrUnknown(
+              data['is_favorite']!, _isFavoriteMeta));
     }
     return context;
   }
@@ -3650,12 +3683,14 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
           .read(DriftSqlType.string, data['${effectivePrefix}image_url']),
       year: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}year'])!,
-      isSingle: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}is_single'])!,
       duration: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}duration'])!,
       albumId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}album_id']),
+      isSingle: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_single'])!,
+      isFavorite: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_favorite'])!,
     );
   }
 
@@ -3675,9 +3710,10 @@ class Song extends DataClass implements Insertable<Song> {
   final String? localPath;
   final String? imageUrl;
   final DateTime year;
-  final bool isSingle;
   final int duration;
   final int? albumId;
+  final bool isSingle;
+  final bool isFavorite;
   const Song(
       {required this.id,
       required this.title,
@@ -3688,9 +3724,10 @@ class Song extends DataClass implements Insertable<Song> {
       this.localPath,
       this.imageUrl,
       required this.year,
-      required this.isSingle,
       required this.duration,
-      this.albumId});
+      this.albumId,
+      required this.isSingle,
+      required this.isFavorite});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3711,11 +3748,12 @@ class Song extends DataClass implements Insertable<Song> {
       map['image_url'] = Variable<String>(imageUrl);
     }
     map['year'] = Variable<DateTime>(year);
-    map['is_single'] = Variable<bool>(isSingle);
     map['duration'] = Variable<int>(duration);
     if (!nullToAbsent || albumId != null) {
       map['album_id'] = Variable<int>(albumId);
     }
+    map['is_single'] = Variable<bool>(isSingle);
+    map['is_favorite'] = Variable<bool>(isFavorite);
     return map;
   }
 
@@ -3738,11 +3776,12 @@ class Song extends DataClass implements Insertable<Song> {
           ? const Value.absent()
           : Value(imageUrl),
       year: Value(year),
-      isSingle: Value(isSingle),
       duration: Value(duration),
       albumId: albumId == null && nullToAbsent
           ? const Value.absent()
           : Value(albumId),
+      isSingle: Value(isSingle),
+      isFavorite: Value(isFavorite),
     );
   }
 
@@ -3760,9 +3799,10 @@ class Song extends DataClass implements Insertable<Song> {
       localPath: serializer.fromJson<String?>(json['localPath']),
       imageUrl: serializer.fromJson<String?>(json['imageUrl']),
       year: serializer.fromJson<DateTime>(json['year']),
-      isSingle: serializer.fromJson<bool>(json['isSingle']),
       duration: serializer.fromJson<int>(json['duration']),
       albumId: serializer.fromJson<int?>(json['albumId']),
+      isSingle: serializer.fromJson<bool>(json['isSingle']),
+      isFavorite: serializer.fromJson<bool>(json['isFavorite']),
     );
   }
   @override
@@ -3778,9 +3818,10 @@ class Song extends DataClass implements Insertable<Song> {
       'localPath': serializer.toJson<String?>(localPath),
       'imageUrl': serializer.toJson<String?>(imageUrl),
       'year': serializer.toJson<DateTime>(year),
-      'isSingle': serializer.toJson<bool>(isSingle),
       'duration': serializer.toJson<int>(duration),
       'albumId': serializer.toJson<int?>(albumId),
+      'isSingle': serializer.toJson<bool>(isSingle),
+      'isFavorite': serializer.toJson<bool>(isFavorite),
     };
   }
 
@@ -3794,9 +3835,10 @@ class Song extends DataClass implements Insertable<Song> {
           Value<String?> localPath = const Value.absent(),
           Value<String?> imageUrl = const Value.absent(),
           DateTime? year,
-          bool? isSingle,
           int? duration,
-          Value<int?> albumId = const Value.absent()}) =>
+          Value<int?> albumId = const Value.absent(),
+          bool? isSingle,
+          bool? isFavorite}) =>
       Song(
         id: id ?? this.id,
         title: title ?? this.title,
@@ -3809,9 +3851,10 @@ class Song extends DataClass implements Insertable<Song> {
         localPath: localPath.present ? localPath.value : this.localPath,
         imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
         year: year ?? this.year,
-        isSingle: isSingle ?? this.isSingle,
         duration: duration ?? this.duration,
         albumId: albumId.present ? albumId.value : this.albumId,
+        isSingle: isSingle ?? this.isSingle,
+        isFavorite: isFavorite ?? this.isFavorite,
       );
   @override
   String toString() {
@@ -3825,9 +3868,10 @@ class Song extends DataClass implements Insertable<Song> {
           ..write('localPath: $localPath, ')
           ..write('imageUrl: $imageUrl, ')
           ..write('year: $year, ')
-          ..write('isSingle: $isSingle, ')
           ..write('duration: $duration, ')
-          ..write('albumId: $albumId')
+          ..write('albumId: $albumId, ')
+          ..write('isSingle: $isSingle, ')
+          ..write('isFavorite: $isFavorite')
           ..write(')'))
         .toString();
   }
@@ -3843,9 +3887,10 @@ class Song extends DataClass implements Insertable<Song> {
       localPath,
       imageUrl,
       year,
-      isSingle,
       duration,
-      albumId);
+      albumId,
+      isSingle,
+      isFavorite);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3859,9 +3904,10 @@ class Song extends DataClass implements Insertable<Song> {
           other.localPath == this.localPath &&
           other.imageUrl == this.imageUrl &&
           other.year == this.year &&
-          other.isSingle == this.isSingle &&
           other.duration == this.duration &&
-          other.albumId == this.albumId);
+          other.albumId == this.albumId &&
+          other.isSingle == this.isSingle &&
+          other.isFavorite == this.isFavorite);
 }
 
 class SongsCompanion extends UpdateCompanion<Song> {
@@ -3874,9 +3920,10 @@ class SongsCompanion extends UpdateCompanion<Song> {
   final Value<String?> localPath;
   final Value<String?> imageUrl;
   final Value<DateTime> year;
-  final Value<bool> isSingle;
   final Value<int> duration;
   final Value<int?> albumId;
+  final Value<bool> isSingle;
+  final Value<bool> isFavorite;
   const SongsCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
@@ -3887,9 +3934,10 @@ class SongsCompanion extends UpdateCompanion<Song> {
     this.localPath = const Value.absent(),
     this.imageUrl = const Value.absent(),
     this.year = const Value.absent(),
-    this.isSingle = const Value.absent(),
     this.duration = const Value.absent(),
     this.albumId = const Value.absent(),
+    this.isSingle = const Value.absent(),
+    this.isFavorite = const Value.absent(),
   });
   SongsCompanion.insert({
     this.id = const Value.absent(),
@@ -3901,9 +3949,10 @@ class SongsCompanion extends UpdateCompanion<Song> {
     this.localPath = const Value.absent(),
     this.imageUrl = const Value.absent(),
     required DateTime year,
-    this.isSingle = const Value.absent(),
     required int duration,
     this.albumId = const Value.absent(),
+    this.isSingle = const Value.absent(),
+    this.isFavorite = const Value.absent(),
   })  : title = Value(title),
         bucketName = Value(bucketName),
         bucketKey = Value(bucketKey),
@@ -3919,9 +3968,10 @@ class SongsCompanion extends UpdateCompanion<Song> {
     Expression<String>? localPath,
     Expression<String>? imageUrl,
     Expression<DateTime>? year,
-    Expression<bool>? isSingle,
     Expression<int>? duration,
     Expression<int>? albumId,
+    Expression<bool>? isSingle,
+    Expression<bool>? isFavorite,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3934,9 +3984,10 @@ class SongsCompanion extends UpdateCompanion<Song> {
       if (localPath != null) 'local_path': localPath,
       if (imageUrl != null) 'image_url': imageUrl,
       if (year != null) 'year': year,
-      if (isSingle != null) 'is_single': isSingle,
       if (duration != null) 'duration': duration,
       if (albumId != null) 'album_id': albumId,
+      if (isSingle != null) 'is_single': isSingle,
+      if (isFavorite != null) 'is_favorite': isFavorite,
     });
   }
 
@@ -3950,9 +4001,10 @@ class SongsCompanion extends UpdateCompanion<Song> {
       Value<String?>? localPath,
       Value<String?>? imageUrl,
       Value<DateTime>? year,
-      Value<bool>? isSingle,
       Value<int>? duration,
-      Value<int?>? albumId}) {
+      Value<int?>? albumId,
+      Value<bool>? isSingle,
+      Value<bool>? isFavorite}) {
     return SongsCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
@@ -3963,9 +4015,10 @@ class SongsCompanion extends UpdateCompanion<Song> {
       localPath: localPath ?? this.localPath,
       imageUrl: imageUrl ?? this.imageUrl,
       year: year ?? this.year,
-      isSingle: isSingle ?? this.isSingle,
       duration: duration ?? this.duration,
       albumId: albumId ?? this.albumId,
+      isSingle: isSingle ?? this.isSingle,
+      isFavorite: isFavorite ?? this.isFavorite,
     );
   }
 
@@ -4000,14 +4053,17 @@ class SongsCompanion extends UpdateCompanion<Song> {
     if (year.present) {
       map['year'] = Variable<DateTime>(year.value);
     }
-    if (isSingle.present) {
-      map['is_single'] = Variable<bool>(isSingle.value);
-    }
     if (duration.present) {
       map['duration'] = Variable<int>(duration.value);
     }
     if (albumId.present) {
       map['album_id'] = Variable<int>(albumId.value);
+    }
+    if (isSingle.present) {
+      map['is_single'] = Variable<bool>(isSingle.value);
+    }
+    if (isFavorite.present) {
+      map['is_favorite'] = Variable<bool>(isFavorite.value);
     }
     return map;
   }
@@ -4024,9 +4080,10 @@ class SongsCompanion extends UpdateCompanion<Song> {
           ..write('localPath: $localPath, ')
           ..write('imageUrl: $imageUrl, ')
           ..write('year: $year, ')
-          ..write('isSingle: $isSingle, ')
           ..write('duration: $duration, ')
-          ..write('albumId: $albumId')
+          ..write('albumId: $albumId, ')
+          ..write('isSingle: $isSingle, ')
+          ..write('isFavorite: $isFavorite')
           ..write(')'))
         .toString();
   }
@@ -4068,9 +4125,10 @@ class $SongGenresTable extends SongGenres
   @override
   List<GeneratedColumn> get $columns => [id, songId, genreId];
   @override
-  String get aliasedName => _alias ?? 'song_genres';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'song_genres';
+  String get actualTableName => $name;
+  static const String $name = 'song_genres';
   @override
   VerificationContext validateIntegrity(Insertable<SongGenre> instance,
       {bool isInserting = false}) {
@@ -4297,9 +4355,10 @@ class $SongLabelsTable extends SongLabels
   @override
   List<GeneratedColumn> get $columns => [id, songId, genreId];
   @override
-  String get aliasedName => _alias ?? 'song_labels';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'song_labels';
+  String get actualTableName => $name;
+  static const String $name = 'song_labels';
   @override
   VerificationContext validateIntegrity(Insertable<SongLabel> instance,
       {bool isInserting = false}) {
@@ -4526,9 +4585,10 @@ class $SongArtistsTable extends SongArtists
   @override
   List<GeneratedColumn> get $columns => [id, songId, artistId];
   @override
-  String get aliasedName => _alias ?? 'song_artists';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'song_artists';
+  String get actualTableName => $name;
+  static const String $name = 'song_artists';
   @override
   VerificationContext validateIntegrity(Insertable<SongArtist> instance,
       {bool isInserting = false}) {
@@ -4755,9 +4815,10 @@ class $SongGroupsTable extends SongGroups
   @override
   List<GeneratedColumn> get $columns => [id, songId, groupId];
   @override
-  String get aliasedName => _alias ?? 'song_groups';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'song_groups';
+  String get actualTableName => $name;
+  static const String $name = 'song_groups';
   @override
   VerificationContext validateIntegrity(Insertable<SongGroup> instance,
       {bool isInserting = false}) {
@@ -4976,9 +5037,10 @@ class $PlaylistsTable extends Playlists
   @override
   List<GeneratedColumn> get $columns => [id, name];
   @override
-  String get aliasedName => _alias ?? 'playlists';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'playlists';
+  String get actualTableName => $name;
+  static const String $name = 'playlists';
   @override
   VerificationContext validateIntegrity(Insertable<Playlist> instance,
       {bool isInserting = false}) {
@@ -5158,9 +5220,10 @@ class $PlaylistSongsTable extends PlaylistSongs
   @override
   List<GeneratedColumn> get $columns => [id, playlistId, songId];
   @override
-  String get aliasedName => _alias ?? 'playlist_songs';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'playlist_songs';
+  String get actualTableName => $name;
+  static const String $name = 'playlist_songs';
   @override
   VerificationContext validateIntegrity(Insertable<PlaylistSong> instance,
       {bool isInserting = false}) {
