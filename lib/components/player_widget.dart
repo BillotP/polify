@@ -24,6 +24,11 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   PlayerState? _playerState;
   Duration? _duration;
   Duration? _position;
+  final double _playerIconSize = 24.0;
+  final double _playerOptionsIconSize = 16.0;
+
+  final double _playerInfoFontSize = 12;
+
   final LocalDB db = Get.find();
 
   StreamSubscription? _durationSubscription;
@@ -40,6 +45,18 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   String get _positionText => _position?.toString().split('.').first ?? '';
 
   AudioPlayer get player => widget.player.player;
+
+  Future setFavorite(bool v) async {
+    widget.player.currentPlaylist.elementAt(widget.player.playIndex).song =
+        (await (db.songs.update()
+                  ..where((tbl) => tbl.id.equals(widget.player.currentPlaylist
+                      .elementAt(widget.player.playIndex)
+                      .songId)))
+                .writeReturning(SongsCompanion(isFavorite: d.Value(v))))
+            .first;
+
+    return;
+  }
 
   @override
   void initState() {
@@ -80,78 +97,140 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   @override
   Widget build(BuildContext context) {
     final playerCtrlcolor = Theme.of(context).secondaryHeaderColor;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              key: const Key('prev_button'),
-              // onPressed: _isPlaying || _isPaused ? _stop : null,
-              onPressed: () => widget.player.skipToPrevious(),
-              iconSize: 48.0,
-              icon: const Icon(Icons.skip_previous),
-              color: playerCtrlcolor,
-            ),
-            _isPaused
-                ? FloatingActionButton(
-                    backgroundColor: playerCtrlcolor,
-                    key: const Key('play_button'),
-                    onPressed: _play,
-                    // iconSize: 48.0,
-                    child: const Icon(
-                      Icons.play_arrow_rounded,
-                      size: 48,
+    return Container(
+      alignment: Alignment.topCenter,
+      height: 112,
+      padding: EdgeInsets.only(top: 6),
+      decoration: BoxDecoration(
+          border: Border.all(color: Colors.white), color: Colors.black),
+      child: ListView(
+        // mainAxisSize: MainAxisSize.min,
+        // mainAxisAlignment: MainAxisAlignment.start,
+        // crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              IconButton(
+                key: const Key('prev_button'),
+                onPressed: () => widget.player.skipToPrevious(),
+                iconSize: _playerIconSize,
+                icon: const Icon(Icons.skip_previous),
+                color: playerCtrlcolor,
+              ),
+              _isPaused
+                  ? FloatingActionButton(
+                      backgroundColor: playerCtrlcolor,
+                      key: const Key('play_button'),
+                      onPressed: _play,
+                      child: Icon(
+                        Icons.play_arrow_rounded,
+                        size: _playerIconSize,
+                      ),
+                      // color: playerCtrlcolor,
+                    )
+                  : FloatingActionButton(
+                      key: const Key('pause_button'),
+                      onPressed: _pause,
+                      backgroundColor: playerCtrlcolor,
+                      child: Icon(
+                        Icons.pause,
+                        size: _playerIconSize,
+                      ),
                     ),
-                    // color: playerCtrlcolor,
-                  )
-                : FloatingActionButton(
-                    key: const Key('pause_button'),
-                    onPressed: _pause,
-                    backgroundColor: playerCtrlcolor,
-                    child: const Icon(
-                      Icons.pause,
-                      size: 48,
+              IconButton(
+                key: const Key('next_button'),
+                onPressed: () => widget.player.nextSong(),
+                iconSize: _playerIconSize,
+                icon: const Icon(Icons.skip_next_sharp),
+                color: playerCtrlcolor,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 6.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "🎵  ${widget.player.currentPlaylist[widget.player.playIndex].title}",
+                        style: TextStyle(fontSize: _playerInfoFontSize),
+                      ),
+                      Text(
+                        "💽 ${widget.player.currentPlaylist[widget.player.playIndex].albumName}",
+                        style: TextStyle(fontSize: _playerInfoFontSize),
+                      ),
+                      Text(
+                        "🧑‍🎤 ${widget.player.currentPlaylist[widget.player.playIndex].artistName}",
+                        style: TextStyle(fontSize: _playerInfoFontSize),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  IconButton(
+                    constraints: BoxConstraints.loose(Size.fromHeight(80)),
+                    iconSize: _playerOptionsIconSize,
+                    onPressed: () => print("not implemented"),
+                    icon: const Icon(
+                      Icons.more_vert,
+                      color: Colors.white,
                     ),
                   ),
-            IconButton(
-              key: const Key('next_button'),
-              // onPressed: _isPlaying || _isPaused ? _stop : null,
-              onPressed: () => widget.player.nextSong(),
-              iconSize: 48.0,
-              icon: const Icon(Icons.skip_next_sharp),
-              color: playerCtrlcolor,
-            ),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Icon(
-                Icons.my_library_music,
-                color: Colors.white,
-              ),
-            ),
-            Expanded(
-              child: Text(
-                widget.player.currentPlaylist
-                        .elementAt(widget.player.playIndex)
-                        .title ??
-                    "Unknow title",
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-          ],
-        ),
-        Padding(
-          padding: const EdgeInsets.all(6.0),
-          child: Row(
+                  IconButton(
+                    constraints: BoxConstraints.loose(Size.fromHeight(80)),
+                    iconSize: _playerOptionsIconSize,
+                    icon: const Icon(
+                      Icons.fullscreen,
+                      color: Colors.white,
+                    ),
+                    onPressed: () => print("not implemented"),
+                  ),
+                  IconButton(
+                    constraints: BoxConstraints.loose(Size.fromHeight(80)),
+                    iconSize: _playerOptionsIconSize,
+                    icon: Icon(
+                      Icons.favorite,
+                      color: widget.player.currentPlaylist
+                              .elementAt(widget.player.playIndex)
+                              .song
+                              .isFavorite
+                          ? Colors.red
+                          : Colors.white,
+                    ),
+                    onPressed: () async => {
+                      await setFavorite(!widget.player.currentPlaylist
+                          .elementAt(widget.player.playIndex)
+                          .song
+                          .isFavorite),
+                      setState(() {})
+                    },
+                  ),
+                ],
+              )
+            ],
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                _position != null
-                    ? _positionText
-                    : _duration != null
-                        ? _durationText
-                        : '',
-                style: const TextStyle(fontSize: 16.0),
+              Padding(
+                padding: const EdgeInsets.only(left: 6.0),
+                child: Text(
+                  _position != null
+                      ? _positionText
+                      : _duration != null
+                          ? _durationText
+                          : '',
+                  style: TextStyle(fontSize: _playerInfoFontSize),
+                ),
               ),
               Expanded(
                 child: Slider(
@@ -172,18 +251,21 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                       : 0.0,
                 ),
               ),
-              Text(
-                _position != null
-                    ? _durationText
-                    : _duration != null
-                        ? _durationText
-                        : '',
-                style: const TextStyle(fontSize: 16.0),
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: Text(
+                  _position != null
+                      ? _durationText
+                      : _duration != null
+                          ? _durationText
+                          : '',
+                  style: TextStyle(fontSize: _playerInfoFontSize),
+                ),
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -191,8 +273,8 @@ class _PlayerWidgetState extends State<PlayerWidget> {
     _durationSubscription = player.onDurationChanged.listen((duration) {
       var currSong = widget.player.currentPlaylist[widget.player.playIndex];
       if (currSong.song.duration.isEqual(1) && duration.inSeconds > 1) {
-        print(
-            "Song ${widget.player.currentPlaylist[widget.player.playIndex].title} duration : ${duration.toString()}");
+        // print(
+        //     "Song ${widget.player.currentPlaylist[widget.player.playIndex].title} duration : ${duration.toString()}");
         (db.update(db.songs)..where((tbl) => tbl.id.equals(currSong.song.id)))
             .writeReturning(
                 SongsCompanion(duration: d.Value(duration.inSeconds)));
