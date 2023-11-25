@@ -35,12 +35,8 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
         builder: (context, controller) {
           return SearchBar(
             controller: controller,
-            onTap: () {
-              controller.openView();
-            },
-            onChanged: (_) {
-              controller.openView();
-            },
+            onTap: () => controller.openView(),
+            onChanged: (_) => controller.openView(),
             padding: const MaterialStatePropertyAll<EdgeInsets>(
                 EdgeInsets.symmetric(horizontal: 16.0)),
             leading: const Icon(Icons.search),
