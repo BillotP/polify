@@ -13,6 +13,7 @@ import 'services/bucket.dart';
 import 'services/player.dart';
 import 'screens/settings.dart';
 import 'components/bucket_tile.dart';
+import 'components/mobile_player_widget.dart';
 import 'components/current_playlist_widget.dart';
 import 'components/artist_tile.dart';
 import 'components/album_tile.dart';
@@ -570,7 +571,11 @@ class _MyHomePageState extends State<MyHomePage> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           _widgets()[_selectedIndex],
-          player.currentPlaylist.isEmpty ? Container() : PlayerWidget()
+          player.currentPlaylist.isEmpty
+              ? Container()
+              : Platform.isAndroid
+                  ? MobilePlayerWidget()
+                  : PlayerWidget()
         ],
       ),
       // This trailing comma makes auto-formatting nicer for build methods.
