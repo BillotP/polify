@@ -1,0 +1,14 @@
+post_install() {
+	ln -s /usr/share/polify/polify /usr/bin/polify
+	chmod +x /usr/bin/polify
+	echo "Thanks for install"
+}
+
+post_upgrade() {
+	post_install
+}
+
+post_remove() {
+	rm /usr/bin/polify
+	echo "Sorry to see you leave, remember to clean db.sqlite in your $DOCUMENTS folder"
+}

@@ -1,0 +1,21 @@
+# Maintainer: Polify Org <linux.deb@polify.lol>
+# Contributor: Ravachol Nildock <ravachol@polify.lol>
+# PKGBUILD Generated Using [debtap](https://github.com/helixarch/debtap)
+pkgname=polify
+pkgver=0.3.1
+pkgrel=20231127
+pkgdesc="S3 music player."
+arch=('x86_64')
+url="https://github.com/BillotP/polify"
+license=('')
+groups=('')
+options=('!strip' '!emptydirs')
+install=${pkgname}.install
+source_x86_64=("polify-${pkgver}+${pkgrel}-linux.deb")
+sha512sums_x86_64=('f7bcc3e92568f79bdd1c11d58a240161b7386da684c2d57f8a6b09a15c5f12a42195bc967d62abb720dabf5214bf52010dcc36fd344824ef92d4392d43d742e6')
+
+
+package(){
+	# Extract package data
+	tar -xJ -f data.tar.xz -C "${pkgdir}"
+}
