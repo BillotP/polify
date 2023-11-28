@@ -28,10 +28,25 @@ deb: ## Package desktop app for linux debian like distros
 	@echo "Building dot DEB package for polify v$(VERSION)+$(BUILD)"
 	@flutter_distributor package --platform linux --targets deb
 
+appimage: ## Package desktop app for all un*x out there in appimage format
+	@echo "Building AppImage package for polify v$(VERSION)+$(BUILD)"
+	@flutter_distributor package --platform linux --targets appimage
+
+linux: ## Linux build release and copy artefact to /usr/local/bin
+	@flutter build linux --release
+
+aur: ## Install this package on your Arch based OS
+	@make deb
+	@export F="polify-$(VERSION)+$(BUILD)-linux.deb" && \
+	 export D="./dist/$(VERSION)+$(BUILD)/$$F" && \
+	 cp "$$D" linux/packaging/aur/
+	@cd linux/packaging/aur && makepkg -si
+
 all: ## Release for linux desktop and android devices
 	@make updatebuild
-	@make android
 	@make deb
+	@make appimage
+	@make android
 
 clean: ## Remove artefacts
 	@flutter clean
