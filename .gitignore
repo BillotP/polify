@@ -13,6 +13,11 @@ android-apk.png
 link.out
 db.sqlite
 polify
+*.deb
+linux/packaging/aur/*
+!linux/packaging/aur/PKGBUILD
+!linux/packaging/aur/polify.install
+
 
 # IntelliJ related
 *.iml
