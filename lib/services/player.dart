@@ -43,14 +43,18 @@ class SongToplay {
     } else if (streamingUrl != null) {
       songitemId = streamingUrl!;
     }
+    // if (albumCover != null) {
+    //   print(base64Encode(albumCover!));
+    // }
     return songitemId.isNotEmpty
         ? MediaItem(
             id: songitemId,
             album: albumName,
             playable: true,
             artUri: albumCover != null
-                ? Uri.dataFromBytes(albumCover as List<int>)
-                    .replace(scheme: "content")
+                ? UriData.fromBytes(albumCover! as List<int>,
+                        mimeType: "image/png")
+                    .uri
                 : null,
             duration:
                 song.duration > 1 ? Duration(seconds: song.duration) : null,
