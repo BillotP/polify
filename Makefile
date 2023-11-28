@@ -35,11 +35,18 @@ appimage: ## Package desktop app for all un*x out there in appimage format
 linux: ## Linux build release and copy artefact to /usr/local/bin
 	@flutter build linux --release
 
+
+pkgbuildupdate: ## Set new version and build hash to PKGBUILD
+	@sed -i "s/pkgver=.*$$/pkgver=$(VERSION)/g" linux/packaging/aur/PKGBUILD
+	@sed -i "s/pkgrel=.*$$/pkgrel=$(BUILD)/g" linux/packaging/aur/PKGBUILD
+	@cd linux/packaging/aur && \
+	 sed -i "s/sha512sums_x86_64=.*$$/$$(makepkg -g)/g" PKGBUILD
+
 aur: ## Build and install this package on your Arch based OS
-	@make deb
 	@export F="polify-$(VERSION)+$(BUILD)-linux.deb" && \
 	 export D="./dist/$(VERSION)+$(BUILD)/$$F" && \
 	 cp "$$D" linux/packaging/aur/
+	@make pkgbuildupdate
 	@cd linux/packaging/aur && makepkg -si
 
 all: ## Release for linux desktop and android devices
