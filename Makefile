@@ -35,7 +35,7 @@ appimage: ## Package desktop app for all un*x out there in appimage format
 linux: ## Linux build release and copy artefact to /usr/local/bin
 	@flutter build linux --release
 
-aur: ## Install this package on your Arch based OS
+aur: ## Build and install this package on your Arch based OS
 	@make deb
 	@export F="polify-$(VERSION)+$(BUILD)-linux.deb" && \
 	 export D="./dist/$(VERSION)+$(BUILD)/$$F" && \
