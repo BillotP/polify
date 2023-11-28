@@ -154,7 +154,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "🎵  ${widget.player.currentPlaylist[widget.player.playIndex].title}",
+                        "🎵 ${widget.player.currentPlaylist[widget.player.playIndex].title}",
                         style: TextStyle(fontSize: _playerInfoFontSize),
                       ),
                       Text(
@@ -162,7 +162,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                         style: TextStyle(fontSize: _playerInfoFontSize),
                       ),
                       Text(
-                        "🧑‍🎤 ${widget.player.currentPlaylist[widget.player.playIndex].artistName}",
+                        "🎤 ${widget.player.currentPlaylist[widget.player.playIndex].artistName}",
                         style: TextStyle(fontSize: _playerInfoFontSize),
                       ),
                     ],
@@ -177,17 +177,8 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                   IconButton(
                     constraints: BoxConstraints.loose(Size.fromHeight(80)),
                     iconSize: _playerOptionsIconSize,
-                    onPressed: () => print("not implemented"),
                     icon: const Icon(
-                      Icons.more_vert,
-                      color: Colors.white,
-                    ),
-                  ),
-                  IconButton(
-                    constraints: BoxConstraints.loose(Size.fromHeight(80)),
-                    iconSize: _playerOptionsIconSize,
-                    icon: const Icon(
-                      Icons.fullscreen,
+                      Icons.heart_broken,
                       color: Colors.white,
                     ),
                     onPressed: () => print("not implemented"),
@@ -211,6 +202,15 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                           .isFavorite),
                       setState(() {})
                     },
+                  ),
+                  IconButton(
+                    constraints: BoxConstraints.loose(Size.fromHeight(80)),
+                    iconSize: _playerOptionsIconSize,
+                    onPressed: () => print("not implemented"),
+                    icon: const Icon(
+                      Icons.more_vert,
+                      color: Colors.white,
+                    ),
                   ),
                 ],
               )
