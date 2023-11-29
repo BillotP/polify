@@ -1,11 +1,11 @@
 post_install() {
 	ln -s /usr/share/polify/polify /usr/bin/polify
 	chmod +x /usr/bin/polify
-	echo "Thanks for install"
+	echo "[POLIFY] 🚀 Welcome to polify"
 }
 
 post_upgrade() {
-	post_install
+	echo "[POLIFY] 🚀 Updated polify ; Enjoy !"
 }
 
 post_remove() {

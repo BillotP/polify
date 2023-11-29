@@ -57,9 +57,10 @@ all: ## Release for linux desktop and android devices
 	@make android
 
 clean: ## Remove artefacts
-	@flutter clean
+	@flutter clean && flutter pub get --no-example
 	@rm -rf dist link.out android-apk.png || true
-	@dart run build_runner build --delete-conflicting-outputs
+	@rm -rf linux/packaging/aur/*.deb linux/packaging/aur/src linux/packaging/aur/pkg \
+	linux/packaging/aur/*.pkg.*  || true
 
 
 .PHONY: android all clean deb aur linux ios macos windows
