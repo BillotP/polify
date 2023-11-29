@@ -58,6 +58,8 @@ class Artists extends Table {
   TextColumn get name => text().unique().withLength(min: 1)();
   TextColumn get imageUrl => text().nullable().withLength(min: 1)();
   TextColumn get description => text().nullable()();
+  BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+  BoolColumn get hidden => boolean().withDefault(const Constant(false))();
 }
 
 class ArtistGenres extends Table {
@@ -83,6 +85,8 @@ class Albums extends Table {
   BlobColumn get imageBlob => blob().nullable()();
   DateTimeColumn get year =>
       dateTime().check(year.isBiggerThan(Constant(DateTime(1000))))();
+  BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+  BoolColumn get hidden => boolean().withDefault(const Constant(false))();
 }
 
 class AlbumGenres extends Table {
@@ -126,6 +130,7 @@ class Songs extends Table {
 
   BoolColumn get isSingle => boolean().withDefault(const Constant(false))();
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+  BoolColumn get hidden => boolean().withDefault(const Constant(false))();
 }
 
 class SongGenres extends Table {
@@ -191,7 +196,28 @@ class LocalDB extends _$LocalDB {
   LocalDB() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          // we added the dueDate property in the change from version 1 to
+          // version 2
+          await m.addColumn(songs, songs.hidden as GeneratedColumn<Object>);
+        }
+        if (from < 3) {
+          await m.addColumn(albums, albums.isFavorite as GeneratedColumn);
+          await m.addColumn(albums, albums.hidden as GeneratedColumn);
+          await m.addColumn(artists, artists.isFavorite as GeneratedColumn);
+          await m.addColumn(artists, artists.hidden as GeneratedColumn);
+        }
+      },
+    );
+  }
 }
 
 LazyDatabase _openConnection() {

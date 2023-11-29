@@ -84,6 +84,10 @@ A Music Artist eg Stan Getz, Rick James, Freeze Corleone ...
 
 ### artists-ImageUrl : text || null
 
+### artists-IsFavorite : boolean
+
+### artists-Hidden : boolean
+
 # Albums
 
 ### albums-Id : integer
@@ -95,6 +99,10 @@ A Music Artist eg Stan Getz, Rick James, Freeze Corleone ...
 ### albums-CoverUrl : text
 
 ### albums-LabelId : integer
+
+### albums-IsFavorite : boolean
+
+### albums-Hidden : boolean
 
 # TODO : Add relation tables for genre, label and artists
 
@@ -113,6 +121,8 @@ A Music Artist eg Stan Getz, Rick James, Freeze Corleone ...
 ### songs-IsSingle : boolean
 
 ### songs-IsFavorite : boolean
+
+### songs-Hidden : boolean
 
 ### songs-AlbumId : integer
 

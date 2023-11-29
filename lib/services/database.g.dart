@@ -1657,9 +1657,28 @@ class $ArtistsTable extends Artists with TableInfo<$ArtistsTable, Artist> {
   late final GeneratedColumn<String> description = GeneratedColumn<String>(
       'description', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _isFavoriteMeta =
+      const VerificationMeta('isFavorite');
+  @override
+  late final GeneratedColumn<bool> isFavorite = GeneratedColumn<bool>(
+      'is_favorite', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_favorite" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _hiddenMeta = const VerificationMeta('hidden');
+  @override
+  late final GeneratedColumn<bool> hidden = GeneratedColumn<bool>(
+      'hidden', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("hidden" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns =>
-      [id, bucketPrefix, name, imageUrl, description];
+      [id, bucketPrefix, name, imageUrl, description, isFavorite, hidden];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1697,6 +1716,16 @@ class $ArtistsTable extends Artists with TableInfo<$ArtistsTable, Artist> {
           description.isAcceptableOrUnknown(
               data['description']!, _descriptionMeta));
     }
+    if (data.containsKey('is_favorite')) {
+      context.handle(
+          _isFavoriteMeta,
+          isFavorite.isAcceptableOrUnknown(
+              data['is_favorite']!, _isFavoriteMeta));
+    }
+    if (data.containsKey('hidden')) {
+      context.handle(_hiddenMeta,
+          hidden.isAcceptableOrUnknown(data['hidden']!, _hiddenMeta));
+    }
     return context;
   }
 
@@ -1716,6 +1745,10 @@ class $ArtistsTable extends Artists with TableInfo<$ArtistsTable, Artist> {
           .read(DriftSqlType.string, data['${effectivePrefix}image_url']),
       description: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      isFavorite: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_favorite'])!,
+      hidden: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}hidden'])!,
     );
   }
 
@@ -1731,12 +1764,16 @@ class Artist extends DataClass implements Insertable<Artist> {
   final String name;
   final String? imageUrl;
   final String? description;
+  final bool isFavorite;
+  final bool hidden;
   const Artist(
       {required this.id,
       required this.bucketPrefix,
       required this.name,
       this.imageUrl,
-      this.description});
+      this.description,
+      required this.isFavorite,
+      required this.hidden});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1749,6 +1786,8 @@ class Artist extends DataClass implements Insertable<Artist> {
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
     }
+    map['is_favorite'] = Variable<bool>(isFavorite);
+    map['hidden'] = Variable<bool>(hidden);
     return map;
   }
 
@@ -1763,6 +1802,8 @@ class Artist extends DataClass implements Insertable<Artist> {
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
+      isFavorite: Value(isFavorite),
+      hidden: Value(hidden),
     );
   }
 
@@ -1775,6 +1816,8 @@ class Artist extends DataClass implements Insertable<Artist> {
       name: serializer.fromJson<String>(json['name']),
       imageUrl: serializer.fromJson<String?>(json['imageUrl']),
       description: serializer.fromJson<String?>(json['description']),
+      isFavorite: serializer.fromJson<bool>(json['isFavorite']),
+      hidden: serializer.fromJson<bool>(json['hidden']),
     );
   }
   @override
@@ -1786,6 +1829,8 @@ class Artist extends DataClass implements Insertable<Artist> {
       'name': serializer.toJson<String>(name),
       'imageUrl': serializer.toJson<String?>(imageUrl),
       'description': serializer.toJson<String?>(description),
+      'isFavorite': serializer.toJson<bool>(isFavorite),
+      'hidden': serializer.toJson<bool>(hidden),
     };
   }
 
@@ -1794,13 +1839,17 @@ class Artist extends DataClass implements Insertable<Artist> {
           String? bucketPrefix,
           String? name,
           Value<String?> imageUrl = const Value.absent(),
-          Value<String?> description = const Value.absent()}) =>
+          Value<String?> description = const Value.absent(),
+          bool? isFavorite,
+          bool? hidden}) =>
       Artist(
         id: id ?? this.id,
         bucketPrefix: bucketPrefix ?? this.bucketPrefix,
         name: name ?? this.name,
         imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
         description: description.present ? description.value : this.description,
+        isFavorite: isFavorite ?? this.isFavorite,
+        hidden: hidden ?? this.hidden,
       );
   @override
   String toString() {
@@ -1809,14 +1858,16 @@ class Artist extends DataClass implements Insertable<Artist> {
           ..write('bucketPrefix: $bucketPrefix, ')
           ..write('name: $name, ')
           ..write('imageUrl: $imageUrl, ')
-          ..write('description: $description')
+          ..write('description: $description, ')
+          ..write('isFavorite: $isFavorite, ')
+          ..write('hidden: $hidden')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, bucketPrefix, name, imageUrl, description);
+  int get hashCode => Object.hash(
+      id, bucketPrefix, name, imageUrl, description, isFavorite, hidden);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1825,7 +1876,9 @@ class Artist extends DataClass implements Insertable<Artist> {
           other.bucketPrefix == this.bucketPrefix &&
           other.name == this.name &&
           other.imageUrl == this.imageUrl &&
-          other.description == this.description);
+          other.description == this.description &&
+          other.isFavorite == this.isFavorite &&
+          other.hidden == this.hidden);
 }
 
 class ArtistsCompanion extends UpdateCompanion<Artist> {
@@ -1834,12 +1887,16 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
   final Value<String> name;
   final Value<String?> imageUrl;
   final Value<String?> description;
+  final Value<bool> isFavorite;
+  final Value<bool> hidden;
   const ArtistsCompanion({
     this.id = const Value.absent(),
     this.bucketPrefix = const Value.absent(),
     this.name = const Value.absent(),
     this.imageUrl = const Value.absent(),
     this.description = const Value.absent(),
+    this.isFavorite = const Value.absent(),
+    this.hidden = const Value.absent(),
   });
   ArtistsCompanion.insert({
     this.id = const Value.absent(),
@@ -1847,6 +1904,8 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
     required String name,
     this.imageUrl = const Value.absent(),
     this.description = const Value.absent(),
+    this.isFavorite = const Value.absent(),
+    this.hidden = const Value.absent(),
   })  : bucketPrefix = Value(bucketPrefix),
         name = Value(name);
   static Insertable<Artist> custom({
@@ -1855,6 +1914,8 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
     Expression<String>? name,
     Expression<String>? imageUrl,
     Expression<String>? description,
+    Expression<bool>? isFavorite,
+    Expression<bool>? hidden,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1862,6 +1923,8 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
       if (name != null) 'name': name,
       if (imageUrl != null) 'image_url': imageUrl,
       if (description != null) 'description': description,
+      if (isFavorite != null) 'is_favorite': isFavorite,
+      if (hidden != null) 'hidden': hidden,
     });
   }
 
@@ -1870,13 +1933,17 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
       Value<String>? bucketPrefix,
       Value<String>? name,
       Value<String?>? imageUrl,
-      Value<String?>? description}) {
+      Value<String?>? description,
+      Value<bool>? isFavorite,
+      Value<bool>? hidden}) {
     return ArtistsCompanion(
       id: id ?? this.id,
       bucketPrefix: bucketPrefix ?? this.bucketPrefix,
       name: name ?? this.name,
       imageUrl: imageUrl ?? this.imageUrl,
       description: description ?? this.description,
+      isFavorite: isFavorite ?? this.isFavorite,
+      hidden: hidden ?? this.hidden,
     );
   }
 
@@ -1898,6 +1965,12 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
     if (description.present) {
       map['description'] = Variable<String>(description.value);
     }
+    if (isFavorite.present) {
+      map['is_favorite'] = Variable<bool>(isFavorite.value);
+    }
+    if (hidden.present) {
+      map['hidden'] = Variable<bool>(hidden.value);
+    }
     return map;
   }
 
@@ -1908,7 +1981,9 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
           ..write('bucketPrefix: $bucketPrefix, ')
           ..write('name: $name, ')
           ..write('imageUrl: $imageUrl, ')
-          ..write('description: $description')
+          ..write('description: $description, ')
+          ..write('isFavorite: $isFavorite, ')
+          ..write('hidden: $hidden')
           ..write(')'))
         .toString();
   }
@@ -2544,9 +2619,28 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
       check: () => year.isBiggerThan(Constant(DateTime(1000))),
       type: DriftSqlType.dateTime,
       requiredDuringInsert: true);
+  static const VerificationMeta _isFavoriteMeta =
+      const VerificationMeta('isFavorite');
+  @override
+  late final GeneratedColumn<bool> isFavorite = GeneratedColumn<bool>(
+      'is_favorite', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_favorite" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _hiddenMeta = const VerificationMeta('hidden');
+  @override
+  late final GeneratedColumn<bool> hidden = GeneratedColumn<bool>(
+      'hidden', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("hidden" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns =>
-      [id, name, bucketPrefix, imageUrl, imageBlob, year];
+      [id, name, bucketPrefix, imageUrl, imageBlob, year, isFavorite, hidden];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2588,6 +2682,16 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
     } else if (isInserting) {
       context.missing(_yearMeta);
     }
+    if (data.containsKey('is_favorite')) {
+      context.handle(
+          _isFavoriteMeta,
+          isFavorite.isAcceptableOrUnknown(
+              data['is_favorite']!, _isFavoriteMeta));
+    }
+    if (data.containsKey('hidden')) {
+      context.handle(_hiddenMeta,
+          hidden.isAcceptableOrUnknown(data['hidden']!, _hiddenMeta));
+    }
     return context;
   }
 
@@ -2609,6 +2713,10 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
           .read(DriftSqlType.blob, data['${effectivePrefix}image_blob']),
       year: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}year'])!,
+      isFavorite: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_favorite'])!,
+      hidden: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}hidden'])!,
     );
   }
 
@@ -2625,13 +2733,17 @@ class Album extends DataClass implements Insertable<Album> {
   final String? imageUrl;
   final Uint8List? imageBlob;
   final DateTime year;
+  final bool isFavorite;
+  final bool hidden;
   const Album(
       {required this.id,
       required this.name,
       required this.bucketPrefix,
       this.imageUrl,
       this.imageBlob,
-      required this.year});
+      required this.year,
+      required this.isFavorite,
+      required this.hidden});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2645,6 +2757,8 @@ class Album extends DataClass implements Insertable<Album> {
       map['image_blob'] = Variable<Uint8List>(imageBlob);
     }
     map['year'] = Variable<DateTime>(year);
+    map['is_favorite'] = Variable<bool>(isFavorite);
+    map['hidden'] = Variable<bool>(hidden);
     return map;
   }
 
@@ -2660,6 +2774,8 @@ class Album extends DataClass implements Insertable<Album> {
           ? const Value.absent()
           : Value(imageBlob),
       year: Value(year),
+      isFavorite: Value(isFavorite),
+      hidden: Value(hidden),
     );
   }
 
@@ -2673,6 +2789,8 @@ class Album extends DataClass implements Insertable<Album> {
       imageUrl: serializer.fromJson<String?>(json['imageUrl']),
       imageBlob: serializer.fromJson<Uint8List?>(json['imageBlob']),
       year: serializer.fromJson<DateTime>(json['year']),
+      isFavorite: serializer.fromJson<bool>(json['isFavorite']),
+      hidden: serializer.fromJson<bool>(json['hidden']),
     );
   }
   @override
@@ -2685,6 +2803,8 @@ class Album extends DataClass implements Insertable<Album> {
       'imageUrl': serializer.toJson<String?>(imageUrl),
       'imageBlob': serializer.toJson<Uint8List?>(imageBlob),
       'year': serializer.toJson<DateTime>(year),
+      'isFavorite': serializer.toJson<bool>(isFavorite),
+      'hidden': serializer.toJson<bool>(hidden),
     };
   }
 
@@ -2694,7 +2814,9 @@ class Album extends DataClass implements Insertable<Album> {
           String? bucketPrefix,
           Value<String?> imageUrl = const Value.absent(),
           Value<Uint8List?> imageBlob = const Value.absent(),
-          DateTime? year}) =>
+          DateTime? year,
+          bool? isFavorite,
+          bool? hidden}) =>
       Album(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -2702,6 +2824,8 @@ class Album extends DataClass implements Insertable<Album> {
         imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
         imageBlob: imageBlob.present ? imageBlob.value : this.imageBlob,
         year: year ?? this.year,
+        isFavorite: isFavorite ?? this.isFavorite,
+        hidden: hidden ?? this.hidden,
       );
   @override
   String toString() {
@@ -2711,14 +2835,16 @@ class Album extends DataClass implements Insertable<Album> {
           ..write('bucketPrefix: $bucketPrefix, ')
           ..write('imageUrl: $imageUrl, ')
           ..write('imageBlob: $imageBlob, ')
-          ..write('year: $year')
+          ..write('year: $year, ')
+          ..write('isFavorite: $isFavorite, ')
+          ..write('hidden: $hidden')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, name, bucketPrefix, imageUrl,
-      $driftBlobEquality.hash(imageBlob), year);
+      $driftBlobEquality.hash(imageBlob), year, isFavorite, hidden);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2728,7 +2854,9 @@ class Album extends DataClass implements Insertable<Album> {
           other.bucketPrefix == this.bucketPrefix &&
           other.imageUrl == this.imageUrl &&
           $driftBlobEquality.equals(other.imageBlob, this.imageBlob) &&
-          other.year == this.year);
+          other.year == this.year &&
+          other.isFavorite == this.isFavorite &&
+          other.hidden == this.hidden);
 }
 
 class AlbumsCompanion extends UpdateCompanion<Album> {
@@ -2738,6 +2866,8 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
   final Value<String?> imageUrl;
   final Value<Uint8List?> imageBlob;
   final Value<DateTime> year;
+  final Value<bool> isFavorite;
+  final Value<bool> hidden;
   const AlbumsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -2745,6 +2875,8 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
     this.imageUrl = const Value.absent(),
     this.imageBlob = const Value.absent(),
     this.year = const Value.absent(),
+    this.isFavorite = const Value.absent(),
+    this.hidden = const Value.absent(),
   });
   AlbumsCompanion.insert({
     this.id = const Value.absent(),
@@ -2753,6 +2885,8 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
     this.imageUrl = const Value.absent(),
     this.imageBlob = const Value.absent(),
     required DateTime year,
+    this.isFavorite = const Value.absent(),
+    this.hidden = const Value.absent(),
   })  : name = Value(name),
         bucketPrefix = Value(bucketPrefix),
         year = Value(year);
@@ -2763,6 +2897,8 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
     Expression<String>? imageUrl,
     Expression<Uint8List>? imageBlob,
     Expression<DateTime>? year,
+    Expression<bool>? isFavorite,
+    Expression<bool>? hidden,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2771,6 +2907,8 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
       if (imageUrl != null) 'image_url': imageUrl,
       if (imageBlob != null) 'image_blob': imageBlob,
       if (year != null) 'year': year,
+      if (isFavorite != null) 'is_favorite': isFavorite,
+      if (hidden != null) 'hidden': hidden,
     });
   }
 
@@ -2780,7 +2918,9 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
       Value<String>? bucketPrefix,
       Value<String?>? imageUrl,
       Value<Uint8List?>? imageBlob,
-      Value<DateTime>? year}) {
+      Value<DateTime>? year,
+      Value<bool>? isFavorite,
+      Value<bool>? hidden}) {
     return AlbumsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -2788,6 +2928,8 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
       imageUrl: imageUrl ?? this.imageUrl,
       imageBlob: imageBlob ?? this.imageBlob,
       year: year ?? this.year,
+      isFavorite: isFavorite ?? this.isFavorite,
+      hidden: hidden ?? this.hidden,
     );
   }
 
@@ -2812,6 +2954,12 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
     if (year.present) {
       map['year'] = Variable<DateTime>(year.value);
     }
+    if (isFavorite.present) {
+      map['is_favorite'] = Variable<bool>(isFavorite.value);
+    }
+    if (hidden.present) {
+      map['hidden'] = Variable<bool>(hidden.value);
+    }
     return map;
   }
 
@@ -2823,7 +2971,9 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
           ..write('bucketPrefix: $bucketPrefix, ')
           ..write('imageUrl: $imageUrl, ')
           ..write('imageBlob: $imageBlob, ')
-          ..write('year: $year')
+          ..write('year: $year, ')
+          ..write('isFavorite: $isFavorite, ')
+          ..write('hidden: $hidden')
           ..write(')'))
         .toString();
   }
@@ -3562,6 +3712,15 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("is_favorite" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _hiddenMeta = const VerificationMeta('hidden');
+  @override
+  late final GeneratedColumn<bool> hidden = GeneratedColumn<bool>(
+      'hidden', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("hidden" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -3576,7 +3735,8 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
         duration,
         albumId,
         isSingle,
-        isFavorite
+        isFavorite,
+        hidden
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3655,6 +3815,10 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
           isFavorite.isAcceptableOrUnknown(
               data['is_favorite']!, _isFavoriteMeta));
     }
+    if (data.containsKey('hidden')) {
+      context.handle(_hiddenMeta,
+          hidden.isAcceptableOrUnknown(data['hidden']!, _hiddenMeta));
+    }
     return context;
   }
 
@@ -3691,6 +3855,8 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
           .read(DriftSqlType.bool, data['${effectivePrefix}is_single'])!,
       isFavorite: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_favorite'])!,
+      hidden: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}hidden'])!,
     );
   }
 
@@ -3714,6 +3880,7 @@ class Song extends DataClass implements Insertable<Song> {
   final int? albumId;
   final bool isSingle;
   final bool isFavorite;
+  final bool hidden;
   const Song(
       {required this.id,
       required this.title,
@@ -3727,7 +3894,8 @@ class Song extends DataClass implements Insertable<Song> {
       required this.duration,
       this.albumId,
       required this.isSingle,
-      required this.isFavorite});
+      required this.isFavorite,
+      required this.hidden});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3754,6 +3922,7 @@ class Song extends DataClass implements Insertable<Song> {
     }
     map['is_single'] = Variable<bool>(isSingle);
     map['is_favorite'] = Variable<bool>(isFavorite);
+    map['hidden'] = Variable<bool>(hidden);
     return map;
   }
 
@@ -3782,6 +3951,7 @@ class Song extends DataClass implements Insertable<Song> {
           : Value(albumId),
       isSingle: Value(isSingle),
       isFavorite: Value(isFavorite),
+      hidden: Value(hidden),
     );
   }
 
@@ -3803,6 +3973,7 @@ class Song extends DataClass implements Insertable<Song> {
       albumId: serializer.fromJson<int?>(json['albumId']),
       isSingle: serializer.fromJson<bool>(json['isSingle']),
       isFavorite: serializer.fromJson<bool>(json['isFavorite']),
+      hidden: serializer.fromJson<bool>(json['hidden']),
     );
   }
   @override
@@ -3822,6 +3993,7 @@ class Song extends DataClass implements Insertable<Song> {
       'albumId': serializer.toJson<int?>(albumId),
       'isSingle': serializer.toJson<bool>(isSingle),
       'isFavorite': serializer.toJson<bool>(isFavorite),
+      'hidden': serializer.toJson<bool>(hidden),
     };
   }
 
@@ -3838,7 +4010,8 @@ class Song extends DataClass implements Insertable<Song> {
           int? duration,
           Value<int?> albumId = const Value.absent(),
           bool? isSingle,
-          bool? isFavorite}) =>
+          bool? isFavorite,
+          bool? hidden}) =>
       Song(
         id: id ?? this.id,
         title: title ?? this.title,
@@ -3855,6 +4028,7 @@ class Song extends DataClass implements Insertable<Song> {
         albumId: albumId.present ? albumId.value : this.albumId,
         isSingle: isSingle ?? this.isSingle,
         isFavorite: isFavorite ?? this.isFavorite,
+        hidden: hidden ?? this.hidden,
       );
   @override
   String toString() {
@@ -3871,7 +4045,8 @@ class Song extends DataClass implements Insertable<Song> {
           ..write('duration: $duration, ')
           ..write('albumId: $albumId, ')
           ..write('isSingle: $isSingle, ')
-          ..write('isFavorite: $isFavorite')
+          ..write('isFavorite: $isFavorite, ')
+          ..write('hidden: $hidden')
           ..write(')'))
         .toString();
   }
@@ -3890,7 +4065,8 @@ class Song extends DataClass implements Insertable<Song> {
       duration,
       albumId,
       isSingle,
-      isFavorite);
+      isFavorite,
+      hidden);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3907,7 +4083,8 @@ class Song extends DataClass implements Insertable<Song> {
           other.duration == this.duration &&
           other.albumId == this.albumId &&
           other.isSingle == this.isSingle &&
-          other.isFavorite == this.isFavorite);
+          other.isFavorite == this.isFavorite &&
+          other.hidden == this.hidden);
 }
 
 class SongsCompanion extends UpdateCompanion<Song> {
@@ -3924,6 +4101,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
   final Value<int?> albumId;
   final Value<bool> isSingle;
   final Value<bool> isFavorite;
+  final Value<bool> hidden;
   const SongsCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
@@ -3938,6 +4116,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
     this.albumId = const Value.absent(),
     this.isSingle = const Value.absent(),
     this.isFavorite = const Value.absent(),
+    this.hidden = const Value.absent(),
   });
   SongsCompanion.insert({
     this.id = const Value.absent(),
@@ -3953,6 +4132,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
     this.albumId = const Value.absent(),
     this.isSingle = const Value.absent(),
     this.isFavorite = const Value.absent(),
+    this.hidden = const Value.absent(),
   })  : title = Value(title),
         bucketName = Value(bucketName),
         bucketKey = Value(bucketKey),
@@ -3972,6 +4152,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
     Expression<int>? albumId,
     Expression<bool>? isSingle,
     Expression<bool>? isFavorite,
+    Expression<bool>? hidden,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3988,6 +4169,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
       if (albumId != null) 'album_id': albumId,
       if (isSingle != null) 'is_single': isSingle,
       if (isFavorite != null) 'is_favorite': isFavorite,
+      if (hidden != null) 'hidden': hidden,
     });
   }
 
@@ -4004,7 +4186,8 @@ class SongsCompanion extends UpdateCompanion<Song> {
       Value<int>? duration,
       Value<int?>? albumId,
       Value<bool>? isSingle,
-      Value<bool>? isFavorite}) {
+      Value<bool>? isFavorite,
+      Value<bool>? hidden}) {
     return SongsCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
@@ -4019,6 +4202,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
       albumId: albumId ?? this.albumId,
       isSingle: isSingle ?? this.isSingle,
       isFavorite: isFavorite ?? this.isFavorite,
+      hidden: hidden ?? this.hidden,
     );
   }
 
@@ -4065,6 +4249,9 @@ class SongsCompanion extends UpdateCompanion<Song> {
     if (isFavorite.present) {
       map['is_favorite'] = Variable<bool>(isFavorite.value);
     }
+    if (hidden.present) {
+      map['hidden'] = Variable<bool>(hidden.value);
+    }
     return map;
   }
 
@@ -4083,7 +4270,8 @@ class SongsCompanion extends UpdateCompanion<Song> {
           ..write('duration: $duration, ')
           ..write('albumId: $albumId, ')
           ..write('isSingle: $isSingle, ')
-          ..write('isFavorite: $isFavorite')
+          ..write('isFavorite: $isFavorite, ')
+          ..write('hidden: $hidden')
           ..write(')'))
         .toString();
   }
