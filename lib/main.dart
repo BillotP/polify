@@ -88,10 +88,12 @@ class _MyHomePageState extends State<MyHomePage> {
   final Map<String, bool> _bucketCrawling = {};
   final Map<String, bool> _filterStates = {
     "favoritesSongs": false,
+    "favoritesAlbums": false,
+    "favoritesArtists": false,
   };
 
+  // TODO(main) refacto Bucket Stream / home page
   List<Widget> _widgets() => [
-        // Bucket Stream / home page TODO(main)
         Expanded(
           child: StreamBuilder(
             stream: buckets,
@@ -172,6 +174,40 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         )),
                       ],
+                    ),
+                    ListTile(
+                      textColor: Colors.white,
+                      title: const Row(
+                        children: [
+                          Icon(
+                            Icons.favorite,
+                            color: Colors.red,
+                          ),
+                          Padding(padding: EdgeInsets.all(10)),
+                          Text("favorites")
+                        ],
+                      ),
+                      dense: false,
+                      trailing: IconButton(
+                          iconSize: 40,
+                          icon: Icon(_filterStates["favoritesArtists"]!
+                              ? Icons.toggle_on
+                              : Icons.toggle_off),
+                          color: _filterStates["favoritesArtists"]!
+                              ? Colors.white
+                              : null,
+                          onPressed: () async {
+                            _filterStates["favoritesArtists"] =
+                                !_filterStates["favoritesArtists"]!;
+                            setState(() {
+                              artists = _filterStates["favoritesArtists"]!
+                                  ? (db.artists.select()
+                                        ..where((tbl) =>
+                                            tbl.isFavorite.equals(true)))
+                                      .watch()
+                                  : (db.artists.all()).watch();
+                            });
+                          }),
                     ),
                     Expanded(
                         child: GridView.builder(
@@ -256,6 +292,40 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                           )),
                         ],
+                      ),
+                      ListTile(
+                        textColor: Colors.white,
+                        title: const Row(
+                          children: [
+                            Icon(
+                              Icons.favorite,
+                              color: Colors.red,
+                            ),
+                            Padding(padding: EdgeInsets.all(10)),
+                            Text("favorites")
+                          ],
+                        ),
+                        dense: false,
+                        trailing: IconButton(
+                            iconSize: 40,
+                            icon: Icon(_filterStates["favoritesAlbums"]!
+                                ? Icons.toggle_on
+                                : Icons.toggle_off),
+                            color: _filterStates["favoritesAlbums"]!
+                                ? Colors.white
+                                : null,
+                            onPressed: () async {
+                              _filterStates["favoritesAlbums"] =
+                                  !_filterStates["favoritesAlbums"]!;
+                              setState(() {
+                                albums = _filterStates["favoritesAlbums"]!
+                                    ? (db.albums.select()
+                                          ..where((tbl) =>
+                                              tbl.isFavorite.equals(true)))
+                                        .watch()
+                                    : (db.albums.all()).watch();
+                              });
+                            }),
                       ),
                       Expanded(
                         child: snapshot.data!.isNotEmpty
@@ -437,9 +507,12 @@ class _MyHomePageState extends State<MyHomePage> {
           ..orderBy([(u) => d.OrderingTerm.asc(u.name)]))
         .watch();
     artists = (db.artists.select()
+          ..where((tbl) => tbl.hidden.equals(false))
           ..orderBy([(u) => d.OrderingTerm.asc(u.name)]))
         .watch();
-    albums = (db.albums.select()..orderBy([(u) => d.OrderingTerm.asc(u.name)]))
+    albums = (db.albums.select()
+          ..where((tbl) => tbl.hidden.equals(false))
+          ..orderBy([(u) => d.OrderingTerm.asc(u.name)]))
         .watch();
     songs = (db.songs.all()).watch();
 
@@ -506,7 +579,8 @@ class _MyHomePageState extends State<MyHomePage> {
             heroTag: "shufflePlay",
             onPressed: () async {
               // TODO(main): improve shuffle method to player service
-              var shuffledSongs = await (db.songs.select()
+              var shuffledSongs = await (db.songs.select(distinct: true)
+                    ..where((tbl) => tbl.hidden.equals(false))
                     ..orderBy([(u) => d.OrderingTerm.random()])
                     ..limit(30))
                   .get();
