@@ -15,7 +15,7 @@ class SettingsWidget extends StatelessWidget {
         appBar: AppBar(
           // backgroundColor: Theme.of(context).colorScheme.background,
           backgroundColor: Colors.black,
-          title: Text("Settings"),
+          title: const Text("Settings"),
           titleTextStyle: const TextStyle(color: Colors.white),
           centerTitle: true,
           leading: IconButton(
