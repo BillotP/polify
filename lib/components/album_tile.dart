@@ -24,7 +24,7 @@ Widget albumListTile(
               icon: const Icon(Icons.playlist_add))
         ],
       ),
-      onTap: () => Get.to(AlbumWidget(album: album)),
+      onTap: () => Get.to(AlbumWidget(albumID: album.id)),
     );
 
 Widget albumCardTile(
@@ -49,14 +49,14 @@ Widget albumCardTile(
               child: IconButton(
                   iconSize: 100,
                   splashRadius: 100,
-                  onPressed: () => Get.to(AlbumWidget(album: album)),
+                  onPressed: () => Get.to(AlbumWidget(albumID: album.id)),
                   icon: album.imageBlob != null
                       ? Image.memory(album.imageBlob!)
                       : const Icon(Icons.album_sharp)),
             ),
             Expanded(
               child: TextButton(
-                onPressed: () => Get.to(AlbumWidget(album: album)),
+                onPressed: () => Get.to(AlbumWidget(albumID: album.id)),
                 child: Text(
                   album.name,
                   style: const TextStyle(
