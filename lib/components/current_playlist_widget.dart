@@ -11,31 +11,6 @@ class CurrentPlaylistWidget extends StatefulWidget {
 
 class _CurrentPlaylistWidgetState extends State<CurrentPlaylistWidget> {
   PlayerService pls = Get.find();
-  // TODO(playlist): Finish save playlist implem
-  // Row(
-  //   mainAxisSize: MainAxisSize.max,
-  //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //   children: [
-  //     Text("Current Playlist Titles : ${pls.currentPlaylist.length}"),
-  //     Row(
-  //       mainAxisSize: MainAxisSize.min,
-  //       children: [
-  //         IconButton(
-  //           onPressed: () => {},
-  //           tooltip: "Save",
-  //           color: Colors.white,
-  //           icon: const Icon(Icons.save),
-  //         ),
-  //         IconButton(
-  //           onPressed: () => {},
-  //           color: Colors.white,
-  //           tooltip: "Clear",
-  //           icon: const Icon(Icons.delete_forever_outlined),
-  //         )
-  //       ],
-  //     ),
-  //   ],
-  // ),
 
   @override
   void initState() {
@@ -58,7 +33,7 @@ class _CurrentPlaylistWidgetState extends State<CurrentPlaylistWidget> {
           decoration: BoxDecoration(color: Colors.black),
           child: ListTile(
             title: Text(
-              "Filters",
+              "Playing Now",
               style: TextStyle(color: Colors.white),
             ),
           ),
@@ -77,7 +52,6 @@ class _CurrentPlaylistWidgetState extends State<CurrentPlaylistWidget> {
             },
             itemCount: pls.currentPlaylist.length,
             itemBuilder: (context, index) => ListTile(
-              // tileColor: Colors.orange,
               dense: true,
               selected: index == pls.playIndex,
               selectedTileColor: Colors.grey,
