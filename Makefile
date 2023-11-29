@@ -43,6 +43,7 @@ pkgbuildupdate: ## Set new version and build hash to PKGBUILD
 	 sed -i "s/sha512sums_x86_64=.*$$/$$(makepkg -g)/g" PKGBUILD
 
 aur: ## Build and install this package on your Arch based OS
+	@make deb
 	@export F="polify-$(VERSION)+$(BUILD)-linux.deb" && \
 	 export D="./dist/$(VERSION)+$(BUILD)/$$F" && \
 	 cp "$$D" linux/packaging/aur/
@@ -61,4 +62,4 @@ clean: ## Remove artefacts
 	@dart run build_runner build --delete-conflicting-outputs
 
 
-.PHONY: android all clean deb
+.PHONY: android all clean deb aur linux ios macos windows
