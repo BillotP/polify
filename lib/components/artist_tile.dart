@@ -24,7 +24,7 @@ Widget artistListTile(
               icon: const Icon(Icons.playlist_add))
         ],
       ),
-      onTap: () => Get.to(ArtistWidget(artist: artist)),
+      onTap: () => Get.to(ArtistWidget(artistID: artist.id)),
     );
 
 // Future<void> _updateImage(ImageProvider provider) async {
@@ -52,7 +52,7 @@ Widget artistCardTile(
             child: IconButton(
                 iconSize: 100,
                 splashRadius: 100,
-                onPressed: () => Get.to(ArtistWidget(artist: artist)),
+                onPressed: () => Get.to(ArtistWidget(artistID: artist.id)),
                 icon: artist.imageUrl != null
                     ? CircleAvatar(
                         radius: 100,
@@ -68,7 +68,7 @@ Widget artistCardTile(
           Expanded(
             child: Center(
               child: TextButton(
-                onPressed: () => Get.to(ArtistWidget(artist: artist)),
+                onPressed: () => Get.to(ArtistWidget(artistID: artist.id)),
                 child: Text(
                   artist.name,
                   style: const TextStyle(
