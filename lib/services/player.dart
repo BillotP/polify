@@ -11,10 +11,12 @@ class SongToplay {
   String? localPath;
   String? streamingUrl;
   late String title;
+  Album? album;
   late String albumName;
   Uint8List? albumCover;
+  Artist? artist;
   late String artistName;
-  SongToplay(this.song, {Artist? artist, Album? album}) {
+  SongToplay(this.song, {this.artist, this.album}) {
     songId = song.id;
     title = song.title
         .replaceAll(RegExp('.(?:wav|mp3|flac)'), "")
@@ -43,9 +45,7 @@ class SongToplay {
     } else if (streamingUrl != null) {
       songitemId = streamingUrl!;
     }
-    // if (albumCover != null) {
-    //   print(base64Encode(albumCover!));
-    // }
+
     return songitemId.isNotEmpty
         ? MediaItem(
             id: songitemId,
@@ -153,6 +153,7 @@ class PlayerService extends BaseAudioHandler with QueueHandler, SeekHandler {
           }
         }
       }
+
       currentPlaylist
           .add(SongToplay(song, artist: songArtist, album: songAlbum));
     }
