@@ -4,6 +4,8 @@ import 'package:drift/drift.dart' as d;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:polify/screens/album.dart';
+import 'package:polify/screens/artist.dart';
 import 'package:polify/services/database.dart';
 import 'package:polify/services/player.dart';
 
@@ -46,13 +48,33 @@ class _MobilePlayerWidgetState extends State<MobilePlayerWidget> {
 
   AudioPlayer get player => widget.player.player;
 
-  Future setFavorite(bool v) async {
+  Future toggleFavorite() async {
     widget.player.currentPlaylist.elementAt(widget.player.playIndex).song =
         (await (db.songs.update()
                   ..where((tbl) => tbl.id.equals(widget.player.currentPlaylist
                       .elementAt(widget.player.playIndex)
                       .songId)))
-                .writeReturning(SongsCompanion(isFavorite: d.Value(v))))
+                .writeReturning(SongsCompanion(
+                    isFavorite: d.Value(!widget.player.currentPlaylist
+                        .elementAt(widget.player.playIndex)
+                        .song
+                        .isFavorite))))
+            .first;
+
+    return;
+  }
+
+  Future toggleHidden() async {
+    widget.player.currentPlaylist.elementAt(widget.player.playIndex).song =
+        (await (db.songs.update()
+                  ..where((tbl) => tbl.id.equals(widget.player.currentPlaylist
+                      .elementAt(widget.player.playIndex)
+                      .songId)))
+                .writeReturning(SongsCompanion(
+                    hidden: d.Value(!widget.player.currentPlaylist
+                        .elementAt(widget.player.playIndex)
+                        .song
+                        .hidden))))
             .first;
 
     return;
@@ -99,8 +121,8 @@ class _MobilePlayerWidgetState extends State<MobilePlayerWidget> {
     final playerCtrlcolor = Theme.of(context).secondaryHeaderColor;
     return Container(
       alignment: Alignment.topCenter,
-      height: 110,
-      padding: EdgeInsets.all(2),
+      // height: 110,
+      padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
           border: Border.all(color: Colors.white), color: Colors.black),
       child: Column(
@@ -108,7 +130,7 @@ class _MobilePlayerWidgetState extends State<MobilePlayerWidget> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.only(right: 2),
+                padding: const EdgeInsets.only(right: 2),
                 decoration: const BoxDecoration(
                     border: Border(right: BorderSide(color: Colors.white))),
                 child: Column(
@@ -124,19 +146,26 @@ class _MobilePlayerWidgetState extends State<MobilePlayerWidget> {
                             ? Colors.red
                             : Colors.white,
                       ),
-                      onTap: () async => {
-                        await setFavorite(!widget.player.currentPlaylist
+                      onTap: () async =>
+                          {await toggleFavorite(), setState(() {})},
+                    ),
+                    widget.player.currentPlaylist
                             .elementAt(widget.player.playIndex)
                             .song
-                            .isFavorite),
-                        setState(() {})
-                      },
-                    ),
-                    Icon(
-                      Icons.heart_broken,
-                      size: _playerOptionsIconSize,
-                      color: Colors.white,
-                    ),
+                            .isFavorite
+                        ? Container()
+                        : GestureDetector(
+                            child: Icon(
+                              Icons.visibility_off,
+                              size: _playerOptionsIconSize,
+                              color: Colors.white,
+                            ),
+                            onTap: () async => {
+                              await toggleHidden(),
+                              await widget.player.nextSong(),
+                              setState(() {})
+                            },
+                          ),
                     Icon(
                       Icons.more_vert,
                       size: _playerOptionsIconSize,
@@ -150,19 +179,38 @@ class _MobilePlayerWidgetState extends State<MobilePlayerWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "🎵 ${widget.player.currentPlaylist[widget.player.playIndex].title.trim()}",
+                      "🎵 ${widget.player.currentPlaylist.elementAtOrNull(widget.player.playIndex)?.title}",
                       style: TextStyle(fontSize: _playerInfoFontSize),
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      "💽 ${widget.player.currentPlaylist[widget.player.playIndex].albumName}",
-                      style: TextStyle(fontSize: _playerInfoFontSize),
-                      overflow: TextOverflow.ellipsis,
+                    GestureDetector(
+                      onTap: widget.player.currentPlaylist
+                                  .elementAtOrNull(widget.player.playIndex)
+                                  ?.album ==
+                              null
+                          ? null
+                          : () => Get.to(AlbumWidget(
+                                albumID: widget.player.currentPlaylist
+                                    .elementAt(widget.player.playIndex)
+                                    .album!
+                                    .id,
+                              )),
+                      child: Text(
+                        "💽 ${widget.player.currentPlaylist.elementAtOrNull(widget.player.playIndex)?.albumName}",
+                        style: TextStyle(fontSize: _playerInfoFontSize),
+                      ),
                     ),
-                    Text(
-                      "🎤 ${widget.player.currentPlaylist[widget.player.playIndex].artistName}",
-                      style: TextStyle(fontSize: _playerInfoFontSize),
-                      overflow: TextOverflow.ellipsis,
+                    GestureDetector(
+                      onTap: () => Get.to(ArtistWidget(
+                        artistID: widget.player.currentPlaylist
+                                .elementAtOrNull(widget.player.playIndex)
+                                ?.artist
+                                ?.id ??
+                            0,
+                      )),
+                      child: Text(
+                        "🎤 ${widget.player.currentPlaylist.elementAtOrNull(widget.player.playIndex)?.artistName}",
+                        style: TextStyle(fontSize: _playerInfoFontSize),
+                      ),
                     ),
                   ],
                 ),
@@ -226,22 +274,27 @@ class _MobilePlayerWidgetState extends State<MobilePlayerWidget> {
                 style: TextStyle(fontSize: _playerInfoFontSize),
               ),
               Expanded(
-                child: Slider(
-                  activeColor: playerCtrlcolor,
-                  onChanged: (v) {
-                    final duration = _duration;
-                    if (duration == null) {
-                      return;
-                    }
-                    final position = v * duration.inMilliseconds;
-                    player.seek(Duration(milliseconds: position.round()));
-                  },
-                  value: (_position != null &&
-                          _duration != null &&
-                          _position!.inMilliseconds > 0 &&
-                          _position!.inMilliseconds < _duration!.inMilliseconds)
-                      ? _position!.inMilliseconds / _duration!.inMilliseconds
-                      : 0.0,
+                child: SliderTheme(
+                  data: SliderTheme.of(context)
+                      .copyWith(overlayShape: SliderComponentShape.noOverlay),
+                  child: Slider(
+                    activeColor: playerCtrlcolor,
+                    onChanged: (v) {
+                      final duration = _duration;
+                      if (duration == null) {
+                        return;
+                      }
+                      final position = v * duration.inMilliseconds;
+                      player.seek(Duration(milliseconds: position.round()));
+                    },
+                    value: (_position != null &&
+                            _duration != null &&
+                            _position!.inMilliseconds > 0 &&
+                            _position!.inMilliseconds <
+                                _duration!.inMilliseconds)
+                        ? _position!.inMilliseconds / _duration!.inMilliseconds
+                        : 0.0,
+                  ),
                 ),
               ),
               Text(
@@ -263,8 +316,6 @@ class _MobilePlayerWidgetState extends State<MobilePlayerWidget> {
     _durationSubscription = player.onDurationChanged.listen((duration) {
       var currSong = widget.player.currentPlaylist[widget.player.playIndex];
       if (currSong.song.duration.isEqual(1) && duration.inSeconds > 1) {
-        // print(
-        //     "Song ${widget.player.currentPlaylist[widget.player.playIndex].title} duration : ${duration.toString()}");
         (db.update(db.songs)..where((tbl) => tbl.id.equals(currSong.song.id)))
             .writeReturning(
                 SongsCompanion(duration: d.Value(duration.inSeconds)));

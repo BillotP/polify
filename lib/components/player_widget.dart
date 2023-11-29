@@ -4,6 +4,8 @@ import 'package:drift/drift.dart' as d;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:polify/screens/album.dart';
+import 'package:polify/screens/artist.dart';
 import 'package:polify/services/database.dart';
 import 'package:polify/services/player.dart';
 
@@ -27,7 +29,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   final double _playerIconSize = 24.0;
   final double _playerOptionsIconSize = 16.0;
 
-  final double _playerInfoFontSize = 12;
+  final double _playerInfoFontSize = 16;
 
   final LocalDB db = Get.find();
 
@@ -46,13 +48,33 @@ class _PlayerWidgetState extends State<PlayerWidget> {
 
   AudioPlayer get player => widget.player.player;
 
-  Future setFavorite(bool v) async {
+  Future toggleFavorite() async {
     widget.player.currentPlaylist.elementAt(widget.player.playIndex).song =
         (await (db.songs.update()
                   ..where((tbl) => tbl.id.equals(widget.player.currentPlaylist
                       .elementAt(widget.player.playIndex)
                       .songId)))
-                .writeReturning(SongsCompanion(isFavorite: d.Value(v))))
+                .writeReturning(SongsCompanion(
+                    isFavorite: d.Value(!widget.player.currentPlaylist
+                        .elementAt(widget.player.playIndex)
+                        .song
+                        .isFavorite))))
+            .first;
+
+    return;
+  }
+
+  Future toggleHidden() async {
+    widget.player.currentPlaylist.elementAt(widget.player.playIndex).song =
+        (await (db.songs.update()
+                  ..where((tbl) => tbl.id.equals(widget.player.currentPlaylist
+                      .elementAt(widget.player.playIndex)
+                      .songId)))
+                .writeReturning(SongsCompanion(
+                    hidden: d.Value(!widget.player.currentPlaylist
+                        .elementAt(widget.player.playIndex)
+                        .song
+                        .hidden))))
             .first;
 
     return;
@@ -98,12 +120,11 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   Widget build(BuildContext context) {
     final playerCtrlcolor = Theme.of(context).secondaryHeaderColor;
     return Container(
-      alignment: Alignment.topCenter,
-      height: 112,
+      alignment: Alignment.center,
       padding: EdgeInsets.only(top: 6),
       decoration: BoxDecoration(
           border: Border.all(color: Colors.white), color: Colors.black),
-      child: ListView(
+      child: Column(
         // mainAxisSize: MainAxisSize.min,
         // mainAxisAlignment: MainAxisAlignment.start,
         // crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,37 +173,74 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                   padding: const EdgeInsets.only(left: 6.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Text(
-                        "🎵 ${widget.player.currentPlaylist[widget.player.playIndex].title}",
+                        "🎵 ${widget.player.currentPlaylist.elementAtOrNull(widget.player.playIndex)?.title}",
                         style: TextStyle(fontSize: _playerInfoFontSize),
                       ),
-                      Text(
-                        "💽 ${widget.player.currentPlaylist[widget.player.playIndex].albumName}",
-                        style: TextStyle(fontSize: _playerInfoFontSize),
+                      GestureDetector(
+                        onTap: widget.player.currentPlaylist
+                                    .elementAtOrNull(widget.player.playIndex)
+                                    ?.album ==
+                                null
+                            ? null
+                            : () => Get.to(AlbumWidget(
+                                  albumID: widget.player.currentPlaylist
+                                      .elementAt(widget.player.playIndex)
+                                      .album!
+                                      .id,
+                                )),
+                        child: Text(
+                          "💽 ${widget.player.currentPlaylist.elementAtOrNull(widget.player.playIndex)?.albumName}",
+                          style: TextStyle(fontSize: _playerInfoFontSize),
+                        ),
                       ),
-                      Text(
-                        "🎤 ${widget.player.currentPlaylist[widget.player.playIndex].artistName}",
-                        style: TextStyle(fontSize: _playerInfoFontSize),
+                      GestureDetector(
+                        onTap: widget.player.currentPlaylist
+                                    .elementAtOrNull(widget.player.playIndex)
+                                    ?.artist ==
+                                null
+                            ? null
+                            : () => Get.to(ArtistWidget(
+                                  artistID: widget.player.currentPlaylist
+                                      .elementAt(widget.player.playIndex)
+                                      .artist!
+                                      .id,
+                                )),
+                        child: Text(
+                          "🎤 ${widget.player.currentPlaylist.elementAtOrNull(widget.player.playIndex)?.artistName}",
+                          style: TextStyle(fontSize: _playerInfoFontSize),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-              Row(
+              Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    constraints: BoxConstraints.loose(Size.fromHeight(80)),
-                    iconSize: _playerOptionsIconSize,
-                    icon: const Icon(
-                      Icons.heart_broken,
-                      color: Colors.white,
-                    ),
-                    onPressed: () => print("not implemented"),
-                  ),
+                  widget.player.currentPlaylist
+                          .elementAt(widget.player.playIndex)
+                          .song
+                          .isFavorite
+                      ? Container()
+                      : IconButton(
+                          constraints:
+                              BoxConstraints.loose(Size.fromHeight(80)),
+                          iconSize: _playerOptionsIconSize,
+                          icon: const Icon(
+                            Icons.visibility_off,
+                            color: Colors.white,
+                          ),
+                          onPressed: () async => {
+                            await toggleHidden(),
+                            await widget.player.nextSong(),
+                            setState(() {})
+                          },
+                        ),
                   IconButton(
                     constraints: BoxConstraints.loose(Size.fromHeight(80)),
                     iconSize: _playerOptionsIconSize,
@@ -195,13 +253,8 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                           ? Colors.red
                           : Colors.white,
                     ),
-                    onPressed: () async => {
-                      await setFavorite(!widget.player.currentPlaylist
-                          .elementAt(widget.player.playIndex)
-                          .song
-                          .isFavorite),
-                      setState(() {})
-                    },
+                    onPressed: () async =>
+                        {await toggleFavorite(), setState(() {})},
                   ),
                   IconButton(
                     constraints: BoxConstraints.loose(Size.fromHeight(80)),
@@ -216,54 +269,63 @@ class _PlayerWidgetState extends State<PlayerWidget> {
               )
             ],
           ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 6.0),
-                child: Text(
-                  _position != null
-                      ? _positionText
-                      : _duration != null
-                          ? _durationText
-                          : '',
-                  style: TextStyle(fontSize: _playerInfoFontSize),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 6.0),
+                  child: Text(
+                    _position != null
+                        ? _positionText
+                        : _duration != null
+                            ? _durationText
+                            : '',
+                    style: TextStyle(fontSize: _playerInfoFontSize),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: Slider(
-                  activeColor: playerCtrlcolor,
-                  onChanged: (v) {
-                    final duration = _duration;
-                    if (duration == null) {
-                      return;
-                    }
-                    final position = v * duration.inMilliseconds;
-                    player.seek(Duration(milliseconds: position.round()));
-                  },
-                  value: (_position != null &&
-                          _duration != null &&
-                          _position!.inMilliseconds > 0 &&
-                          _position!.inMilliseconds < _duration!.inMilliseconds)
-                      ? _position!.inMilliseconds / _duration!.inMilliseconds
-                      : 0.0,
+                Expanded(
+                  child: SliderTheme(
+                    data: SliderTheme.of(context)
+                        .copyWith(overlayShape: SliderComponentShape.noOverlay),
+                    child: Slider(
+                      activeColor: playerCtrlcolor,
+                      onChanged: (v) {
+                        final duration = _duration;
+                        if (duration == null) {
+                          return;
+                        }
+                        final position = v * duration.inMilliseconds;
+                        player.seek(Duration(milliseconds: position.round()));
+                      },
+                      value: (_position != null &&
+                              _duration != null &&
+                              _position!.inMilliseconds > 0 &&
+                              _position!.inMilliseconds <
+                                  _duration!.inMilliseconds)
+                          ? _position!.inMilliseconds /
+                              _duration!.inMilliseconds
+                          : 0.0,
+                    ),
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: Text(
-                  _position != null
-                      ? _durationText
-                      : _duration != null
-                          ? _durationText
-                          : '',
-                  style: TextStyle(fontSize: _playerInfoFontSize),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: Text(
+                    _position != null
+                        ? _durationText
+                        : _duration != null
+                            ? _durationText
+                            : '',
+                    style: TextStyle(fontSize: _playerInfoFontSize),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          )
         ],
       ),
     );
