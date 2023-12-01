@@ -65,7 +65,7 @@ dev_dependencies:
   drift_dev: ^2.11.2
   build_runner: ^2.4.6
   envied_generator: ^0.5.2
-  analyzer: ^5.13.0
+  analyzer: ^6.2.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
