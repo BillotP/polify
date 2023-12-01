@@ -63,7 +63,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^3.0.1
   drift_dev: ^2.11.2
-  build_runner: ^2.4.6
+  build_runner: ^2.4.7
   envied_generator: ^0.5.2
   analyzer: ^5.13.0
 
